@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="IPDA Brain">
+<meta name="theme-color" content="#0a0a0a">
+<title>IPDA Trading Brain</title>
+<style>
+:root{
+  --bg:#0a0a0a;--bg1:#111;--bg2:#1a1a1a;--bg3:#222;
+  --border:#2a2a2a;--border2:#333;
+  --text:#f0f0f0;--text2:#888;--text3:#555;
+  --green:#4caf50;--green-bg:#1a3a1a;--green-border:#2d6a2d;
+  --red:#f44336;--red-bg:#3a1a1a;--red-border:#6a2d2d;
+  --orange:#ff9800;--orange-bg:#2a2a1a;--orange-border:#6a5a1a;
+  --blue:#42a5f5;--blue-bg:#1a2a3a;--blue-border:#1e3a5a;
+  --purple:#ce93d8;--purple-bg:#2a1a3a;--purple-border:#4a2a6a;
+  --gold:#ffd700;
+  --nav-h:60px;--safe-bottom:env(safe-area-inset-bottom,0px);
+  --radius:12px;--radius-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;min-height:100vh;overflow-x:hidden}
+#app{padding-bottom:calc(var(--nav-h) + var(--safe-bottom) + 8px)}
+/* BOTTOM NAV */
+#nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-bottom));padding-bottom:var(--safe-bottom);background:var(--bg1);border-top:0.5px solid var(--border);display:flex;z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:10px;font-weight:500;letter-spacing:.03em;padding:8px 0;transition:color .15s}
+.nav-btn.active{color:var(--blue)}
+.nav-icon{font-size:22px;line-height:1}
+/* SECTIONS */
+.sec{display:none;padding:0 0 8px}
+.sec.active{display:block}
+/* HEADER */
+.page-header{padding:14px 16px 8px;position:sticky;top:0;background:var(--bg);z-index:50;border-bottom:.5px solid var(--border)}
+.page-title{font-size:17px;font-weight:600;color:var(--text)}
+.page-sub{font-size:12px;color:var(--text2);margin-top:2px}
+/* CARDS */
+.card{background:var(--bg1);border:.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin:10px 14px}
+.card-title{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px}
+/* LABELS */
+.lbl{font-size:11px;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;font-weight:500}
+/* PILLS */
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2px}
+.pill{display:inline-flex;align-items:center;padding:6px 12px;border:.5px solid var(--border2);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s;user-select:none;font-weight:500}
+.pill.on{border-color:var(--text);color:var(--text);background:var(--bg2)}
+.pill.bull{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.pill.bear{background:var(--red-bg);border-color:var(--red-border);color:var(--red)}
+.pill.ambi{background:var(--orange-bg);border-color:var(--orange-border);color:var(--orange)}
+.pill.info{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue)}
+/* INPUTS */
+textarea,input[type=text],input[type=number],select{
+  width:100%;background:var(--bg2);border:.5px solid var(--border2);
+  border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;
+  color:var(--text);font-family:inherit;resize:none;line-height:1.6;
+  -webkit-appearance:none;appearance:none
+}
+textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
+/* BUTTONS */
+.btn{padding:10px 16px;background:none;border:.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s;letter-spacing:.02em}
+.btn.pri{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn.full{width:100%}
+.btn.sm{padding:7px 12px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+/* BADGES */
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.badge.bull{background:var(--green-bg);color:var(--green)}
+.badge.bear{background:var(--red-bg);color:var(--red)}
+.badge.ambi{background:var(--orange-bg);color:var(--orange)}
+.badge.win{background:var(--green-bg);color:var(--green)}
+.badge.loss{background:var(--red-bg);color:var(--red)}
+.badge.be{background:var(--orange-bg);color:var(--orange)}
+.badge.valid{background:var(--blue-bg);color:var(--blue)}
+.badge.invalid{background:var(--purple-bg);color:var(--purple)}
+/* AI BOX */
+.ai-box{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;line-height:1.75;white-space:pre-wrap;color:var(--text);min-height:60px}
+/* METRIC */
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.metric{background:var(--bg2);border-radius:var(--radius-sm);padding:12px 14px}
+.metric-val{font-size:24px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+.metric-lbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+/* DIVIDER */
+.divider{height:.5px;background:var(--border);margin:12px 0}
+/* TIMELINE INDICATOR */
+.timeline{display:flex;gap:0;margin:10px 0;background:var(--bg2);border-radius:var(--radius-sm);overflow:hidden;border:.5px solid var(--border)}
+.tl-item{flex:1;padding:8px 6px;text-align:center;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;cursor:pointer;transition:all .15s}
+.tl-item.active{background:var(--blue-bg);color:var(--blue)}
+/* ACCORDION */
+.accord{border:.5px solid var(--border);border-radius:var(--radius);margin:10px 14px;overflow:hidden}
+.accord-head{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:var(--bg1)}
+.accord-title{font-size:14px;font-weight:600;color:var(--text)}
+.accord-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.accord-arrow{font-size:16px;color:var(--text2);transition:transform .2s}
+.accord-body{display:none;padding:0 14px 14px;background:var(--bg1)}
+.accord.open .accord-arrow{transform:rotate(180deg)}
+.accord.open .accord-body{display:block}
+/* ENTRY CARD */
+.entry-card{background:var(--bg1);border:.5px solid var(--border);border-radius:var(--radius);padding:14px;margin:8px 14px}
+.entry-head{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.entry-narrative{font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:6px}
+.entry-review{font-size:12px;color:var(--text3);line-height:1.6;padding-top:8px;border-top:.5px solid var(--border)}
+/* LEVEL ITEM */
+.level-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:.5px solid var(--border)}
+.level-item:last-child{border-bottom:none}
+.level-name{font-size:13px;color:var(--text2)}
+.level-val{font-size:13px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+/* CALENDAR */
+.cal-event{padding:10px 0;border-bottom:.5px solid var(--border)}
+.cal-event:last-child{border-bottom:none}
+.cal-time{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.05em}
+.cal-name{font-size:13px;color:var(--text);margin-top:2px;font-weight:500}
+.cal-impact{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px}
+.cal-impact.high{background:var(--red)}
+.cal-impact.med{background:var(--orange)}
+.cal-impact.low{background:var(--green)}
+/* STATUS BAR */
+.status-bar{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin:0 14px 10px;display:flex;align-items:center;gap:8px}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.status-dot.green{background:var(--green)}
+.status-dot.red{background:var(--red)}
+.status-dot.orange{background:var(--orange)}
+.status-dot.grey{background:var(--text3)}
+/* LIVE TRADE */
+.live-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.live-tag.live{background:var(--red-bg);color:var(--red);border:.5px solid var(--red-border)}
+.live-tag.back{background:var(--blue-bg);color:var(--blue);border:.5px solid var(--blue-border)}
+/* RANGE BAR */
+.range-wrap{display:flex;gap:0;height:6px;border-radius:3px;overflow:hidden;margin:6px 0}
+.range-disc{flex:1;background:var(--green-bg)}
+.range-eq{width:3px;background:var(--border2)}
+.range-prem{flex:1;background:var(--red-bg)}
+/* EMPTY */
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--text3);font-size:13px}
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* SEASONAL */
+.seasonal-item{padding:10px 0;border-bottom:.5px solid var(--border)}
+.seasonal-item:last-child{border-bottom:none}
+/* SCROLLABLE */
+.scroll-list{max-height:40vh;overflow-y:auto}
+/* pnl */
+.pnl-p{color:var(--green)}.pnl-n{color:var(--red)}
+/* SECTION BREAK */
+.sec-break{padding:6px 16px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-top:6px}
+/* HIGHLIGHT BOX */
+.highlight{background:var(--blue-bg);border:.5px solid var(--blue-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;font-size:13px;color:var(--blue);line-height:1.6}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ===== BRAIN TAB ===== -->
+<div id="brain" class="sec active">
+  <div class="page-header">
+    <div class="page-title">🧠 IPDA Brain</div>
+    <div class="page-sub" id="brain-context-line">Loading context...</div>
+  </div>
+
+  <div class="card" id="brain-status-card">
+    <div class="card-title">Market context snapshot</div>
+    <div id="context-pills" style="display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Ask the brain</div>
+    <textarea id="brain-q" rows="3" placeholder="What should I be looking for today?&#10;Is my narrative valid?&#10;Why did price reverse at that level?&#10;Should I be long or short right now?"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn sm" onclick="brainQuick('Give me a full market briefing based on my current macro, monthly and weekly data')">📋 Full briefing</button>
+      <button class="btn sm" onclick="brainQuick('Is my current weekly bias aligned with the macro? Flag any conflicts.')">⚠️ Conflict check</button>
+      <button class="btn sm" onclick="brainQuick('What ICT pattern should I be watching for this week based on my data?')">🎯 Pattern focus</button>
+      <button class="btn sm" onclick="brainQuick('Review my recent trades and tell me what I need to fix most urgently.')">📊 Trade review</button>
+    </div>
+    <button class="btn pri full" id="brain-btn" onclick="runBrain()" style="margin-top:10px">Analyze ↗</button>
+  </div>
+
+  <div id="brain-out-wrap" style="display:none;margin:0 14px">
+    <div class="lbl" style="margin-bottom:6px">Brain analysis</div>
+    <div class="ai-box" id="brain-out"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Recent trade performance</div>
+    <div class="metrics" id="brain-metrics">
+      <div class="metric"><div class="metric-val">—</div><div class="metric-lbl">Win rate</div></div>
+      <div class="metric"><div class="metric-val">—</div><div class="metric-lbl">Total R</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MACRO TAB ===== -->
+<div id="macro" class="sec">
+  <div class="page-header">
+    <div class="page-title">📅 Macro Analysis</div>
+    <div class="page-sub">Quarterly → Monthly → Seasonal</div>
+  </div>
+
+  <div class="timeline" style="margin:10px 14px 0">
+    <div class="tl-item active" onclick="showMacro('quarterly')">Quarterly</div>
+    <div class="tl-item" onclick="showMacro('monthly')">Monthly</div>
+    <div class="tl-item" onclick="showMacro('seasonal')">Seasonal</div>
+  </div>
+
+  <!-- QUARTERLY -->
+  <div id="macro-quarterly">
+    <div class="card">
+      <div class="card-title">Quarterly setup — Q<span id="q-label"></span></div>
+      <div class="lbl">Current quarter bias</div>
+      <div class="pills">
+        <span class="pill" data-g="q-bias" data-v="Bullish" onclick="selC(this,'bull')">Bullish</span>
+        <span class="pill" data-g="q-bias" data-v="Bearish" onclick="selC(this,'bear')">Bearish</span>
+        <span class="pill" data-g="q-bias" data-v="Ranging" onclick="selC(this,'ambi')">Ranging</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Quarterly market phase</div>
+      <div class="pills">
+        <span class="pill" data-g="q-phase" data-v="Accumulation" onclick="sel(this)">Accumulation</span>
+        <span class="pill" data-g="q-phase" data-v="Markup" onclick="sel(this)">Markup</span>
+        <span class="pill" data-g="q-phase" data-v="Distribution" onclick="sel(this)">Distribution</span>
+        <span class="pill" data-g="q-phase" data-v="Markdown" onclick="sel(this)">Markdown</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Position in quarterly range</div>
+      <div class="pills">
+        <span class="pill" data-g="q-pos" data-v="Deep discount" onclick="selC(this,'bull')">Deep discount</span>
+        <span class="pill" data-g="q-pos" data-v="Discount" onclick="selC(this,'bull')">Discount</span>
+        <span class="pill" data-g="q-pos" data-v="Equilibrium" onclick="sel(this)">Equilibrium</span>
+        <span class="pill" data-g="q-pos" data-v="Premium" onclick="selC(this,'bear')">Premium</span>
+        <span class="pill" data-g="q-pos" data-v="Deep premium" onclick="selC(this,'bear')">Deep premium</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Quarterly high / low</div>
+      <div class="g2">
+        <input type="text" id="q-high" placeholder="Q high e.g. 22,000">
+        <input type="text" id="q-low" placeholder="Q low e.g. 19,500">
+      </div>
+      <div class="lbl" style="margin-top:10px">Major HTF targets this quarter</div>
+      <textarea id="q-targets" rows="2" placeholder="e.g. 60-day high at 21,800 — primary BSL target. Monthly FVG at 20,100-20,350..."></textarea>
+      <div class="lbl" style="margin-top:10px">Quarterly narrative</div>
+      <textarea id="q-narrative" rows="4" placeholder="e.g. We are in a quarterly markup phase. Price made a clean BOS above the Q2 high suggesting the algorithm is delivering to the upside. Current position is in a discount after a 2-week retracement. Expecting the Q3 to close near the quarterly highs targeting 21,800..."></textarea>
+      <button class="btn pri full" onclick="saveQuarterly()" style="margin-top:12px">Save quarterly plan ↗</button>
+    </div>
+  </div>
+
+  <!-- MONTHLY -->
+  <div id="macro-monthly" style="display:none">
+    <div class="card">
+      <div class="card-title">Monthly setup — <span id="m-label"></span></div>
+      <div class="lbl">Monthly bias</div>
+      <div class="pills">
+        <span class="pill" data-g="m-bias" data-v="Bullish" onclick="selC(this,'bull')">Bullish</span>
+        <span class="pill" data-g="m-bias" data-v="Bearish" onclick="selC(this,'bear')">Bearish</span>
+        <span class="pill" data-g="m-bias" data-v="Ranging" onclick="selC(this,'ambi')">Ranging</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Monthly dealing range position</div>
+      <div class="pills">
+        <span class="pill" data-g="m-pos" data-v="Deep discount" onclick="selC(this,'bull')">Deep discount</span>
+        <span class="pill" data-g="m-pos" data-v="Discount" onclick="selC(this,'bull')">Discount</span>
+        <span class="pill" data-g="m-pos" data-v="Equilibrium" onclick="sel(this)">Equilibrium</span>
+        <span class="pill" data-g="m-pos" data-v="Premium" onclick="selC(this,'bear')">Premium</span>
+        <span class="pill" data-g="m-pos" data-v="Deep premium" onclick="selC(this,'bear')">Deep premium</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Monthly open / high / low (so far)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <input type="text" id="m-open" placeholder="Open">
+        <input type="text" id="m-high" placeholder="High">
+        <input type="text" id="m-low" placeholder="Low">
+      </div>
+      <div class="lbl" style="margin-top:10px">IPDA draw this month</div>
+      <div class="pills">
+        <span class="pill" data-g="m-draw" data-v="Monthly high (BSL)" onclick="sel(this)">Monthly high (BSL)</span>
+        <span class="pill" data-g="m-draw" data-v="Monthly low (SSL)" onclick="sel(this)">Monthly low (SSL)</span>
+        <span class="pill" data-g="m-draw" data-v="FVG above" onclick="sel(this)">FVG above</span>
+        <span class="pill" data-g="m-draw" data-v="FVG below" onclick="sel(this)">FVG below</span>
+        <span class="pill" data-g="m-draw" data-v="Equal highs" onclick="sel(this)">Equal highs</span>
+        <span class="pill" data-g="m-draw" data-v="Equal lows" onclick="sel(this)">Equal lows</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Key monthly levels</div>
+      <textarea id="m-levels" rows="3" placeholder="Previous month high: 21,400&#10;Previous month low: 20,800&#10;Monthly FVG: 21,050-21,120&#10;Monthly OB: 20,900-20,960"></textarea>
+      <div class="lbl" style="margin-top:10px">Monthly narrative</div>
+      <textarea id="m-narrative" rows="4" placeholder="Write your full monthly read — structure, manipulation expected, where price came from, where it's going, key events this month..."></textarea>
+      <div class="lbl" style="margin-top:10px">Long-term targets (don't change often)</div>
+      <textarea id="m-longtargets" rows="2" placeholder="e.g. 60-day target: 22,000 | 40-day target: 21,600 | 20-day target: 21,200"></textarea>
+      <button class="btn pri full" onclick="saveMonthly()" style="margin-top:12px">Save monthly plan ↗</button>
+    </div>
+  </div>
+
+  <!-- SEASONAL -->
+  <div id="macro-seasonal" style="display:none">
+    <div class="card">
+      <div class="card-title">Seasonal tendencies</div>
+      <div class="highlight">ICT teaches that certain months and quarters have historical delivery tendencies. Use this to align your macro bias with seasonal patterns.</div>
+      <div id="seasonal-list">
+        <div class="seasonal-item">
+          <div style="font-size:12px;font-weight:600;color:var(--text)">Q1 (Jan–Mar)</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px">Typically bullish. January marks the yearly opening price. ICT teaches the yearly open is a key reference — price above it in Q1 = strong bullish seasonal tendency. Watch for expansion moves off the yearly open.</div>
+        </div>
+        <div class="seasonal-item">
+          <div style="font-size:12px;font-weight:600;color:var(--text)">Q2 (Apr–Jun)</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px">Typically a retracement or distribution quarter. Often the yearly high or significant high forms in Q2. ICT notes this is when the algorithm delivers a retracement to build orders for the next leg.</div>
+        </div>
+        <div class="seasonal-item">
+          <div style="font-size:12px;font-weight:600;color:var(--text)">Q3 (Jul–Sep)</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px">Mixed — can trend or consolidate. August and September historically have lower volatility. ICT uses this period for accumulation watching. Lower timeframe setups are cleaner in July.</div>
+        </div>
+        <div class="seasonal-item">
+          <div style="font-size:12px;font-weight:600;color:var(--text)">Q4 (Oct–Dec)</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px">Strong trending quarter. October often marks a significant low or high. November-December historically bullish for indices. ICT notes the algorithm delivers aggressively in Q4 to close the yearly range.</div>
+        </div>
+        <div class="seasonal-item">
+          <div style="font-size:12px;font-weight:600;color:var(--text)">Key monthly patterns</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:3px">First 3 trading days of month: algorithm sets the monthly opening range. Mid-month (10th–15th): manipulation of monthly range. Last week: distribution or reversal as monthly positions are squared.</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="lbl">Your seasonal notes for this period</div>
+      <textarea id="seasonal-notes" rows="3" placeholder="e.g. We are in Q3. Historically this is a consolidation phase. I will reduce trade frequency and only take the highest confluence setups. August tends to be choppy so I will focus on Tuesday/Thursday only..."></textarea>
+      <button class="btn pri full" onclick="saveSeasonalNotes()" style="margin-top:10px">Save notes ↗</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WEEKLY TAB ===== -->
+<div id="weekly" class="sec">
+  <div class="page-header">
+    <div class="page-title">📊 Weekly Plan</div>
+    <div class="page-sub" id="week-label-header">Set once per week, before Sunday/Monday</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Weekly bias</div>
+    <div class="pills">
+      <span class="pill" data-g="w-bias" data-v="Bullish" onclick="selC(this,'bull')">Bullish</span>
+      <span class="pill" data-g="w-bias" data-v="Bearish" onclick="selC(this,'bear')">Bearish</span>
+      <span class="pill" data-g="w-bias" data-v="Ranging" onclick="selC(this,'ambi')">Ranging</span>
+    </div>
+    <div class="lbl" style="margin-top:10px">Weekly structure</div>
+    <div class="pills">
+      <span class="pill" data-g="w-str" data-v="HH/HL — bullish" onclick="selC(this,'bull')">HH/HL (bullish)</span>
+      <span class="pill" data-g="w-str" data-v="LH/LL — bearish" onclick="selC(this,'bear')">LH/LL (bearish)</span>
+      <span class="pill" data-g="w-str" data-v="CHoCH forming" onclick="selC(this,'ambi')">CHoCH forming</span>
+    </div>
+    <div class="lbl" style="margin-top:10px">Weekly dealing range position</div>
+    <div class="pills">
+      <span class="pill" data-g="w-pos" data-v="Discount" onclick="selC(this,'bull')">Discount</span>
+      <span class="pill" data-g="w-pos" data-v="Equilibrium" onclick="sel(this)">Equilibrium</span>
+      <span class="pill" data-g="w-pos" data-v="Premium" onclick="selC(this,'bear')">Premium</span>
+    </div>
+    <div class="lbl" style="margin-top:10px">IPDA weekly draw</div>
+    <div class="pills">
+      <span class="pill" data-g="w-draw" data-v="Previous week high (BSL)" onclick="sel(this)">PWH (BSL)</span>
+      <span class="pill" data-g="w-draw" data-v="Previous week low (SSL)" onclick="sel(this)">PWL (SSL)</span>
+      <span class="pill" data-g="w-draw" data-v="Equal highs above" onclick="sel(this)">Equal highs</span>
+      <span class="pill" data-g="w-draw" data-v="Equal lows below" onclick="sel(this)">Equal lows</span>
+      <span class="pill" data-g="w-draw" data-v="FVG above" onclick="sel(this)">FVG above</span>
+      <span class="pill" data-g="w-draw" data-v="FVG below" onclick="sel(this)">FVG below</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Key weekly levels</div>
+    <textarea id="w-levels" rows="4" placeholder="Previous week high (PWH): ____&#10;Previous week low (PWL): ____&#10;Monday high: ____&#10;Monday low: ____&#10;Weekly FVG: ____-____&#10;Weekly OB: ____-____"></textarea>
+    <div class="lbl" style="margin-top:10px">Day profile expectation</div>
+    <div class="pills">
+      <span class="pill" data-g="w-day" data-v="Monday — range formation" onclick="sel(this)">Mon — range</span>
+      <span class="pill" data-g="w-day" data-v="Tuesday — weekly low/high forms" onclick="sel(this)">Tue — manipulation</span>
+      <span class="pill" data-g="w-day" data-v="Wednesday — continuation" onclick="sel(this)">Wed — continuation</span>
+      <span class="pill" data-g="w-day" data-v="Thursday — distribution" onclick="sel(this)">Thu — distribution</span>
+      <span class="pill" data-g="w-day" data-v="Friday — avoid" onclick="sel(this)">Fri — avoid</span>
+    </div>
+    <div class="lbl" style="margin-top:10px">ICT pattern expected this week</div>
+    <div class="pills">
+      <span class="pill" data-g="w-pat" data-v="AMD" onclick="sel(this)">AMD model</span>
+      <span class="pill" data-g="w-pat" data-v="Judas swing" onclick="sel(this)">Judas swing</span>
+      <span class="pill" data-g="w-pat" data-v="Turtle soup" onclick="sel(this)">Turtle soup</span>
+      <span class="pill" data-g="w-pat" data-v="Silver bullet" onclick="sel(this)">Silver bullet</span>
+      <span class="pill" data-g="w-pat" data-v="Stop hunt continuation" onclick="sel(this)">Stop hunt</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Weekly narrative</div>
+    <textarea id="w-narrative" rows="5" placeholder="Write your full weekly read. Where is price in the weekly range? What happened last week? What is the algorithm likely to do this week? Which session do you expect to manipulate? What is the target?"></textarea>
+    <div class="lbl" style="margin-top:10px">What I will NOT do this week</div>
+    <div class="pills">
+      <span class="pill" data-g="w-dont" onclick="togP(this)" data-v="Trade Monday">No Monday</span>
+      <span class="pill" data-g="w-dont" onclick="togP(this)" data-v="Trade Friday">No Friday</span>
+      <span class="pill" data-g="w-dont" onclick="togP(this)" data-v="Chase entries">No chasing</span>
+      <span class="pill" data-g="w-dont" onclick="togP(this)" data-v="Enter before 1m CHoCH">No early entry</span>
+      <span class="pill" data-g="w-dont" onclick="togP(this)" data-v="Take more than 1 loss per day">Max 1 loss/day</span>
+      <span class="pill" data-g="w-dont" onclick="togP(this)" data-v="Trade news events">No news trades</span>
+    </div>
+    <button class="btn pri full" onclick="saveWeekly()" style="margin-top:12px">Save weekly plan ↗</button>
+  </div>
+
+  <!-- Saved weekly review -->
+  <div class="sec-break">Previous weeks</div>
+  <div id="weekly-history"><div class="empty">No weekly plans saved yet.</div></div>
+</div>
+
+<!-- ===== SESSION TAB ===== -->
+<div id="session" class="sec">
+  <div class="page-header">
+    <div class="page-title">⚡ Session</div>
+    <div class="page-sub">Daily plan + live trade log</div>
+  </div>
+
+  <div class="timeline" style="margin:10px 14px 0">
+    <div class="tl-item active" onclick="showSession('plan')">Daily plan</div>
+    <div class="tl-item" onclick="showSession('live')">Live trade</div>
+    <div class="tl-item" onclick="showSession('backtest')">Backtest</div>
+    <div class="tl-item" onclick="showSession('trades')">History</div>
+  </div>
+
+  <!-- DAILY PLAN -->
+  <div id="sess-plan">
+    <div class="card">
+      <div class="card-title">Today's pre-session plan</div>
+      <div class="lbl">Day</div>
+      <div class="pills">
+        <span class="pill" data-g="s-day" data-v="Monday" onclick="sel(this)">Mon</span>
+        <span class="pill" data-g="s-day" data-v="Tuesday" onclick="sel(this)">Tue</span>
+        <span class="pill" data-g="s-day" data-v="Wednesday" onclick="sel(this)">Wed</span>
+        <span class="pill" data-g="s-day" data-v="Thursday" onclick="sel(this)">Thu</span>
+        <span class="pill" data-g="s-day" data-v="Friday" onclick="sel(this)">Fri</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Daily bias</div>
+      <div class="pills">
+        <span class="pill" data-g="s-bias" data-v="Bullish" onclick="selC(this,'bull')">Bullish</span>
+        <span class="pill" data-g="s-bias" data-v="Bearish" onclick="selC(this,'bear')">Bearish</span>
+        <span class="pill" data-g="s-bias" data-v="No trade" onclick="selC(this,'ambi')">No trade</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">HTF draw today</div>
+      <div class="pills">
+        <span class="pill" data-g="s-draw" data-v="PDH (BSL)" onclick="sel(this)">PDH (BSL)</span>
+        <span class="pill" data-g="s-draw" data-v="PDL (SSL)" onclick="sel(this)">PDL (SSL)</span>
+        <span class="pill" data-g="s-draw" data-v="FVG above" onclick="sel(this)">FVG above</span>
+        <span class="pill" data-g="s-draw" data-v="FVG below" onclick="sel(this)">FVG below</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Session that will manipulate</div>
+      <div class="pills">
+        <span class="pill" data-g="s-sess" data-v="Asia — building range" onclick="sel(this)">Asia</span>
+        <span class="pill" data-g="s-sess" data-v="London — manipulation leg" onclick="sel(this)">London</span>
+        <span class="pill" data-g="s-sess" data-v="NY AM — distribution" onclick="sel(this)">NY AM</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Key levels today</div>
+      <textarea id="s-levels" rows="3" placeholder="PDH: ____&#10;PDL: ____&#10;Asian high: ____&#10;Asian low: ____&#10;FVG zone: ____-____"></textarea>
+      <div class="lbl" style="margin-top:10px">Today's narrative & prediction</div>
+      <textarea id="s-narrative" rows="3" placeholder="What do you expect London to do? Where is the stop hunt? Where does NY deliver? What is the FVG entry target?"></textarea>
+      <button class="btn pri full" onclick="saveDailyPlan()" style="margin-top:10px">Save daily plan ↗</button>
+    </div>
+  </div>
+
+  <!-- LIVE TRADE -->
+  <div id="sess-live" style="display:none">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span class="live-tag live">● LIVE</span>
+        <span style="font-size:12px;color:var(--text2)">Real money trade</span>
+      </div>
+      <div class="lbl">Direction</div>
+      <div class="pills">
+        <span class="pill" data-g="lt-dir" data-v="long" onclick="selC(this,'bull')">Long</span>
+        <span class="pill" data-g="lt-dir" data-v="short" onclick="selC(this,'bear')">Short</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Entry trigger confirmed</div>
+      <div class="pills">
+        <span class="pill" data-g="lt-trigger" onclick="togP(this)" data-v="London sweep confirmed">London sweep ✓</span>
+        <span class="pill" data-g="lt-trigger" onclick="togP(this)" data-v="15m FVG formed">15m FVG ✓</span>
+        <span class="pill" data-g="lt-trigger" onclick="togP(this)" data-v="FVG retraced into">FVG retrace ✓</span>
+        <span class="pill" data-g="lt-trigger" onclick="togP(this)" data-v="1m stop hunt">1m stop hunt ✓</span>
+        <span class="pill" data-g="lt-trigger" onclick="togP(this)" data-v="1m CHoCH">1m CHoCH ✓</span>
+        <span class="pill" data-g="lt-trigger" onclick="togP(this)" data-v="Killzone timing">Killzone ✓</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Setup validity</div>
+      <div class="pills">
+        <span class="pill" data-g="lt-valid" data-v="valid" onclick="selC(this,'info')">Valid</span>
+        <span class="pill" data-g="lt-valid" data-v="invalid" onclick="selC(this,'bear')">Invalid</span>
+        <span class="pill" data-g="lt-valid" data-v="partial" onclick="selC(this,'ambi')">Partial</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Result + R</div>
+      <div class="g2">
+        <div class="pills" style="flex-direction:column;gap:6px">
+          <span class="pill" data-g="lt-res" data-v="win" onclick="selC(this,'bull')">Win</span>
+          <span class="pill" data-g="lt-res" data-v="loss" onclick="selC(this,'bear')">Loss</span>
+          <span class="pill" data-g="lt-res" data-v="be" onclick="selC(this,'ambi')">Break even</span>
+        </div>
+        <input type="number" id="lt-r" placeholder="R e.g. 2.5" step="0.5" style="height:fit-content">
+      </div>
+      <div class="lbl" style="margin-top:10px">Quick note</div>
+      <textarea id="lt-note" rows="2" placeholder="What happened? What did you see?"></textarea>
+      <button class="btn pri full" id="lt-btn" onclick="logLiveTrade()" style="margin-top:10px">Log live trade + AI review ↗</button>
+      <div id="lt-out" style="display:none;margin-top:10px">
+        <div class="lbl">Coach review</div>
+        <div class="ai-box" id="lt-ai"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BACKTEST -->
+  <div id="sess-backtest" style="display:none">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span class="live-tag back">◉ BACKTEST</span>
+      </div>
+      <div class="lbl">Day & direction</div>
+      <div class="pills" style="flex-wrap:wrap">
+        <span class="pill" data-g="bt-day" data-v="Monday" onclick="sel(this)">Mon</span>
+        <span class="pill" data-g="bt-day" data-v="Tuesday" onclick="sel(this)">Tue</span>
+        <span class="pill" data-g="bt-day" data-v="Wednesday" onclick="sel(this)">Wed</span>
+        <span class="pill" data-g="bt-day" data-v="Thursday" onclick="sel(this)">Thu</span>
+        <span class="pill" data-g="bt-day" data-v="Friday" onclick="sel(this)">Fri</span>
+        <span class="pill" data-g="bt-dir" data-v="long" onclick="selC(this,'bull')" style="margin-left:6px">Long</span>
+        <span class="pill" data-g="bt-dir" data-v="short" onclick="selC(this,'bear')">Short</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">15m confluences</div>
+      <div class="pills">
+        <span class="pill" data-g="bt-m15" onclick="togP(this)" data-v="Asian range">Asian range</span>
+        <span class="pill" data-g="bt-m15" onclick="togP(this)" data-v="London sweep">London sweep</span>
+        <span class="pill" data-g="bt-m15" onclick="togP(this)" data-v="15m displacement">15m displacement</span>
+        <span class="pill" data-g="bt-m15" onclick="togP(this)" data-v="15m FVG">15m FVG</span>
+        <span class="pill" data-g="bt-m15" onclick="togP(this)" data-v="FVG retrace">FVG retrace</span>
+        <span class="pill" data-g="bt-m15" onclick="togP(this)" data-v="OTE zone">OTE zone</span>
+        <span class="pill" data-g="bt-m15" onclick="togP(this)" data-v="Killzone">Killzone</span>
+        <span class="pill" data-g="bt-m15" onclick="togP(this)" data-v="AMD visible">AMD</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">1m entry</div>
+      <div class="pills">
+        <span class="pill" data-g="bt-m1" onclick="togP(this)" data-v="1m stop hunt">Stop hunt</span>
+        <span class="pill" data-g="bt-m1" onclick="togP(this)" data-v="1m CHoCH">CHoCH</span>
+        <span class="pill" data-g="bt-m1" onclick="togP(this)" data-v="1m FVG entry">1m FVG</span>
+        <span class="pill" data-g="bt-m1" onclick="togP(this)" data-v="Entered early">Entered early</span>
+        <span class="pill" data-g="bt-m1" onclick="togP(this)" data-v="Chased">Chased</span>
+        <span class="pill" data-g="bt-m1" onclick="togP(this)" data-v="Stop correct">Stop correct</span>
+      </div>
+      <div class="lbl" style="margin-top:10px">Result & validity</div>
+      <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+        <div class="pills">
+          <span class="pill" data-g="bt-res" data-v="win" onclick="selC(this,'bull')">Win</span>
+          <span class="pill" data-g="bt-res" data-v="loss" onclick="selC(this,'bear')">Loss</span>
+          <span class="pill" data-g="bt-res" data-v="be" onclick="selC(this,'ambi')">BE</span>
+        </div>
+        <input type="number" id="bt-r" placeholder="R" step="0.5" style="width:80px;height:fit-content">
+        <div class="pills">
+          <span class="pill" data-g="bt-valid" data-v="valid" onclick="selC(this,'info')">Valid</span>
+          <span class="pill" data-g="bt-valid" data-v="invalid" onclick="selC(this,'bear')">Invalid</span>
+        </div>
+      </div>
+      <div class="lbl" style="margin-top:10px">What happened</div>
+      <textarea id="bt-note" rows="2" placeholder="What did the market do? Did your prediction match?"></textarea>
+      <button class="btn pri full" id="bt-btn" onclick="logBacktest()" style="margin-top:10px">Generate journal + review ↗</button>
+      <div id="bt-out" style="display:none;margin-top:10px">
+        <div class="lbl">AI journal + coaching</div>
+        <div class="ai-box" id="bt-ai"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
+          <button class="btn sm" onclick="discardBt()">Discard</button>
+          <button class="btn pri sm" onclick="saveBt()">Save ↗</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRADE HISTORY -->
+  <div id="sess-trades" style="display:none">
+    <div style="padding:10px 14px;display:flex;gap:8px;align-items:center;justify-content:space-between">
+      <div id="trades-summary" style="font-size:12px;color:var(--text2)">0 trades</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn sm" onclick="filterTrades('all')">All</button>
+        <button class="btn sm" onclick="filterTrades('live')">Live</button>
+        <button class="btn sm" onclick="filterTrades('backtest')">Backtest</button>
+      </div>
+    </div>
+    <div id="trades-list"><div class="empty">No trades logged yet.</div></div>
+  </div>
+</div>
+
+<!-- ===== CALENDAR TAB ===== -->
+<div id="calendar" class="sec">
+  <div class="page-header">
+    <div class="page-title">📰 Economic Calendar</div>
+    <div class="page-sub">Key events + your custom entries</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Add event</div>
+    <div class="g2" style="margin-bottom:8px">
+      <div>
+        <div class="lbl">Date</div>
+        <input type="text" id="ev-date" placeholder="e.g. Apr 30">
+      </div>
+      <div>
+        <div class="lbl">Time (EST)</div>
+        <input type="text" id="ev-time" placeholder="e.g. 8:30am">
+      </div>
+    </div>
+    <div class="lbl">Event name</div>
+    <input type="text" id="ev-name" placeholder="e.g. CPI, NFP, FOMC, GDP..." style="margin-bottom:8px">
+    <div class="lbl">Impact</div>
+    <div class="pills">
+      <span class="pill" data-g="ev-impact" data-v="High" onclick="selC(this,'bear')">🔴 High</span>
+      <span class="pill" data-g="ev-impact" data-v="Medium" onclick="selC(this,'ambi')">🟡 Medium</span>
+      <span class="pill" data-g="ev-impact" data-v="Low" onclick="selC(this,'bull')">🟢 Low</span>
+    </div>
+    <div class="lbl" style="margin-top:10px">Notes / expectation</div>
+    <textarea id="ev-note" rows="2" placeholder="e.g. Expect volatility. Avoid trading 15min before and 30min after. Watch for Judas swing at open then real direction..."></textarea>
+    <button class="btn pri full" onclick="addEvent()" style="margin-top:10px">Add to calendar ↗</button>
+  </div>
+
+  <div class="sec-break">Upcoming events</div>
+  <div class="card">
+    <div class="card-title">ICT key dates (recurring)</div>
+    <div class="cal-event">
+      <div class="cal-time"><span class="cal-impact high"></span>NFP — First Friday of month</div>
+      <div class="cal-name">Non-Farm Payrolls — 8:30am EST</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px">Avoid 30min before. Watch for Judas swing at open then true delivery direction forms after 9am.</div>
+    </div>
+    <div class="cal-event">
+      <div class="cal-time"><span class="cal-impact high"></span>FOMC — 8x per year</div>
+      <div class="cal-name">Federal Reserve rate decision — 2:00pm EST</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px">ICT: FOMC days often see manipulation before the announcement then explosive delivery after. Do not hold through announcement.</div>
+    </div>
+    <div class="cal-event">
+      <div class="cal-time"><span class="cal-impact high"></span>CPI — Monthly</div>
+      <div class="cal-name">Consumer Price Index — 8:30am EST</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px">High volatility. Wait for first 15 minutes to settle. Let price show its hand before entering.</div>
+    </div>
+    <div class="cal-event">
+      <div class="cal-time"><span class="cal-impact med"></span>Silver bullet windows — Daily</div>
+      <div class="cal-name">10:00–11:00am EST | 2:00–3:00pm EST</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px">ICT's time-based entry model. FVG forms in these windows = high probability entry. Only trade FVGs that form inside the window.</div>
+    </div>
+  </div>
+
+  <div class="sec-break">Your events</div>
+  <div id="events-list"><div class="empty">No events added. Add your economic calendar events above.</div></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div id="nav">
+  <button class="nav-btn active" onclick="showTab('brain')">
+    <span class="nav-icon">🧠</span>Brain
+  </button>
+  <button class="nav-btn" onclick="showTab('macro')">
+    <span class="nav-icon">📅</span>Macro
+  </button>
+  <button class="nav-btn" onclick="showTab('weekly')">
+    <span class="nav-icon">📊</span>Weekly
+  </button>
+  <button class="nav-btn" onclick="showTab('session')">
+    <span class="nav-icon">⚡</span>Session
+  </button>
+  <button class="nav-btn" onclick="showTab('calendar')">
+    <span class="nav-icon">📰</span>Calendar
+  </button>
+</div>
+
+<script>
+// ─── STATE ──────────────────────────────────────────────
+const D={
+  q:{bias:null,phase:null,pos:null,high:'',low:'',targets:'',narrative:''},
+  m:{bias:null,pos:null,draw:null,open:'',high:'',low:'',levels:'',narrative:'',longtargets:''},
+  seasonal:{notes:''},
+  w:{bias:null,str:null,pos:null,draw:null,levels:'',day:null,pat:null,narrative:'',dont:[]},
+  s:{day:null,bias:null,draw:null,sess:null,levels:'',narrative:''},
+  lt:{dir:null,trigger:[],valid:null,res:null},
+  bt:{day:null,dir:null,m15:[],m1:[],res:null,valid:null},
+  ev:{impact:null},
+  trades:[],
+  events:[],
+  weeklyHistory:[],
+  pendingBt:null
+};
+
+// ─── PERSISTENCE ────────────────────────────────────────
+function save(){try{localStorage.setItem('ipda_brain_v1',JSON.stringify(D));}catch(e){}}
+function load(){
+  try{
+    const raw=localStorage.getItem('ipda_brain_v1');
+    if(raw){const saved=JSON.parse(raw);Object.assign(D,saved);}
+  }catch(e){}
+}
+
+// ─── PILL SELECTORS ─────────────────────────────────────
+function sel(el){
+  const g=el.dataset.g;
+  document.querySelectorAll(`[data-g="${g}"]`).forEach(e=>e.className=e.className.replace(/\s*(on|bull|bear|ambi|info)/g,''));
+  el.classList.add('on');
+}
+function selC(el,cls){
+  const g=el.dataset.g;
+  document.querySelectorAll(`[data-g="${g}"]`).forEach(e=>e.className=e.className.replace(/\s*(on|bull|bear|ambi|info)/g,''));
+  el.classList.add(cls);
+}
+function togP(el){el.classList.toggle('on');}
+
+function getVal(g){
+  const el=document.querySelector(`[data-g="${g}"].on,[data-g="${g}"].bull,[data-g="${g}"].bear,[data-g="${g}"].ambi,[data-g="${g}"].info`);
+  return el?el.dataset.v:null;
+}
+function getMulti(g){
+  return [...document.querySelectorAll(`[data-g="${g}"].on,[data-g="${g}"].bull,[data-g="${g}"].bear,[data-g="${g}"].ambi,[data-g="${g}"].info`)].map(e=>e.dataset.v);
+}
+
+// ─── TAB NAVIGATION ─────────────────────────────────────
+function showTab(t){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(t).classList.add('active');
+  const idx=['brain','macro','weekly','session','calendar'].indexOf(t);
+  document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+  if(t==='brain')updateBrainContext();
+  if(t==='session')renderTrades();
+}
+
+// ─── MACRO TAB ──────────────────────────────────────────
+function showMacro(s){
+  ['quarterly','monthly','seasonal'].forEach(x=>{
+    document.getElementById('macro-'+x).style.display=x===s?'block':'none';
+  });
+  document.querySelectorAll('#macro .tl-item').forEach((el,i)=>{
+    el.classList.toggle('active',['quarterly','monthly','seasonal'][i]===s);
+  });
+}
+
+function saveQuarterly(){
+  D.q={
+    bias:getVal('q-bias'),phase:getVal('q-phase'),pos:getVal('q-pos'),
+    high:document.getElementById('q-high').value,
+    low:document.getElementById('q-low').value,
+    targets:document.getElementById('q-targets').value,
+    narrative:document.getElementById('q-narrative').value
+  };
+  save();alert('✓ Quarterly plan saved');
+}
+
+function saveMonthly(){
+  D.m={
+    bias:getVal('m-bias'),pos:getVal('m-pos'),draw:getVal('m-draw'),
+    open:document.getElementById('m-open').value,
+    high:document.getElementById('m-high').value,
+    low:document.getElementById('m-low').value,
+    levels:document.getElementById('m-levels').value,
+    narrative:document.getElementById('m-narrative').value,
+    longtargets:document.getElementById('m-longtargets').value
+  };
+  save();alert('✓ Monthly plan saved');
+}
+
+function saveSeasonalNotes(){
+  D.seasonal.notes=document.getElementById('seasonal-notes').value;
+  save();alert('✓ Seasonal notes saved');
+}
+
+// ─── WEEKLY ─────────────────────────────────────────────
+function saveWeekly(){
+  const entry={
+    date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+    bias:getVal('w-bias'),str:getVal('w-str'),pos:getVal('w-pos'),draw:getVal('w-draw'),
+    levels:document.getElementById('w-levels').value,
+    day:getVal('w-day'),pat:getVal('w-pat'),
+    narrative:document.getElementById('w-narrative').value,
+    dont:getMulti('w-dont')
+  };
+  D.w=entry;
+  D.weeklyHistory.unshift(entry);
+  if(D.weeklyHistory.length>8)D.weeklyHistory.pop();
+  save();renderWeeklyHistory();alert('✓ Weekly plan saved');
+}
+
+function renderWeeklyHistory(){
+  const el=document.getElementById('weekly-history');
+  if(!D.weeklyHistory.length){el.innerHTML='<div class="empty">No weekly plans saved yet.</div>';return;}
+  el.innerHTML=D.weeklyHistory.map(w=>`
+    <div class="entry-card">
+      <div class="entry-head">
+        <span style="font-size:11px;color:var(--text3)">${w.date||''}</span>
+        ${w.bias?`<span class="badge ${w.bias==='Bullish'?'bull':w.bias==='Bearish'?'bear':'ambi'}">${w.bias}</span>`:''}
+        ${w.draw?`<span style="font-size:11px;color:var(--text2)">${w.draw}</span>`:''}
+      </div>
+      ${w.narrative?`<div class="entry-narrative">${w.narrative}</div>`:''}
+      ${w.dont&&w.dont.length?`<div style="font-size:11px;color:var(--text3)">Rules: ${w.dont.join(' · ')}</div>`:''}
+    </div>`).join('');
+}
+
+// ─── SESSION ────────────────────────────────────────────
+function showSession(s){
+  ['plan','live','backtest','trades'].forEach(x=>{
+    document.getElementById('sess-'+x).style.display=x===s?'block':'none';
+  });
+  document.querySelectorAll('#session .tl-item').forEach((el,i)=>{
+    el.classList.toggle('active',['plan','live','backtest','trades'][i]===s);
+  });
+  if(s==='trades')renderTrades();
+}
+
+function saveDailyPlan(){
+  D.s={
+    day:getVal('s-day'),bias:getVal('s-bias'),draw:getVal('s-draw'),
+    sess:getVal('s-sess'),levels:document.getElementById('s-levels').value,
+    narrative:document.getElementById('s-narrative').value
+  };
+  save();alert('✓ Daily plan saved');
+}
+
+// ─── LIVE TRADE ─────────────────────────────────────────
+async function logLiveTrade(){
+  const btn=document.getElementById('lt-btn');
+  const out=document.getElementById('lt-out');
+  const ai=document.getElementById('lt-ai');
+  const trigger=getMulti('lt-trigger');
+  const dir=getVal('lt-dir');
+  const res=getVal('lt-res');
+  const valid=getVal('lt-valid');
+  const r=parseFloat(document.getElementById('lt-r').value)||0;
+  const note=document.getElementById('lt-note').value;
+  btn.disabled=true;btn.textContent='Reviewing...';
+  out.style.display='block';ai.textContent='Reviewing your live trade...';
+  const ctx=buildContext();
+  const prompt=`LIVE TRADE — REAL MONEY
+Context: ${ctx}
+Direction: ${dir||'?'} | Result: ${res||'?'} | R: ${r} | Valid: ${valid||'?'}
+Entry triggers confirmed: ${trigger.join(', ')||'none'}
+Note: ${note||'none'}`;
+  try{
+    const text=await callAI(prompt,`You are an ICT/IPDA trading mentor reviewing a LIVE real-money trade just taken by a developing trader. Be concise, direct, and constructive. Write 3-4 sentences covering: what they did right, the most important mistake if any, and one specific instruction for the next trade. This is real money — be honest but supportive. No markdown, no bullets.`);
+    ai.textContent=text;
+    const trade={id:Date.now(),type:'live',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),dir,res,r,valid,trigger,note,review:text};
+    D.trades.unshift(trade);save();
+  }catch(e){ai.textContent='Error. Trade logged without review.';}
+  btn.disabled=false;btn.textContent='Log live trade + AI review ↗';
+}
+
+// ─── BACKTEST ────────────────────────────────────────────
+async function logBacktest(){
+  const btn=document.getElementById('bt-btn');
+  const out=document.getElementById('bt-out');
+  const ai=document.getElementById('bt-ai');
+  const day=getVal('bt-day');const dir=getVal('bt-dir');
+  const m15=getMulti('bt-m15');const m1=getMulti('bt-m1');
+  const res=getVal('bt-res');const valid=getVal('bt-valid');
+  const r=parseFloat(document.getElementById('bt-r').value)||0;
+  const note=document.getElementById('bt-note').value;
+  btn.disabled=true;btn.textContent='Generating...';
+  out.style.display='block';ai.textContent='Writing journal entry...';
+  const ctx=buildContext();
+  const prompt=`BACKTEST TRADE
+Context: ${ctx}
+Day: ${day||'?'} | Direction: ${dir||'?'} | Result: ${res||'?'} | R: ${r} | Valid: ${valid||'?'}
+15m confluences: ${m15.join(', ')||'none'}
+1m confluences: ${m1.join(', ')||'none'}
+What happened: ${note||'not noted'}`;
+  try{
+    const text=await callAI(prompt,`You are an ICT/IPDA trading mentor and journal writer. Write two sections:
+JOURNAL: 3-4 sentences in first person past tense. Describe the narrative, session structure, entry mechanics, and outcome using ICT terminology naturally.
+REVIEW: 3-4 sentences as the mentor. Evaluate what they did right, what was wrong, and give one specific actionable instruction for next time.
+Format: JOURNAL: [text]\n\nREVIEW: [text]\nNo markdown, no asterisks.`);
+    ai.textContent=text;
+    D.pendingBt={id:Date.now(),type:'backtest',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),day,dir,res,r,valid,m15,m1,note,aiText:text};
+  }catch(e){ai.textContent='Error. Try again.';}
+  btn.disabled=false;btn.textContent='Generate journal + review ↗';
+}
+
+function saveBt(){
+  if(D.pendingBt){D.trades.unshift(D.pendingBt);D.pendingBt=null;save();discardBt();showSession('trades');}
+}
+function discardBt(){
+  document.getElementById('bt-out').style.display='none';
+  document.getElementById('bt-ai').textContent='';
+  D.pendingBt=null;
+}
+
+function renderTrades(filter='all'){
+  const el=document.getElementById('trades-list');
+  const sum=document.getElementById('trades-summary');
+  let trades=D.trades;
+  if(filter==='live')trades=trades.filter(t=>t.type==='live');
+  if(filter==='backtest')trades=trades.filter(t=>t.type==='backtest');
+  const valid=trades.filter(t=>t.valid==='valid');
+  const wins=valid.filter(t=>t.res==='win');
+  const totalR=valid.reduce((s,t)=>s+(t.res==='win'?t.r:t.res==='loss'?-Math.abs(t.r):0),0);
+  sum.textContent=`${trades.length} trades · Win: ${valid.length?Math.round(wins.length/valid.length*100)+'%':'—'} · R: ${totalR>=0?'+':''}${totalR.toFixed(1)}`;
+  if(!trades.length){el.innerHTML='<div class="empty">No trades logged yet.</div>';return;}
+  el.innerHTML=trades.map(t=>{
+    const parts=t.aiText?t.aiText.split(/REVIEW:/i):['',''];
+    const jPart=parts[0].replace(/JOURNAL:/i,'').trim();
+    const rPart=parts[1]?parts[1].trim():'';
+    return`<div class="entry-card">
+      <div class="entry-head">
+        <span class="live-tag ${t.type}">${t.type==='live'?'● LIVE':'◉ BT'}</span>
+        <span style="font-size:11px;color:var(--text3)">${t.date||''}</span>
+        ${t.day?`<span style="font-size:11px;color:var(--text2)">${t.day.slice(0,3)}</span>`:''}
+        ${t.dir?`<span class="badge ${t.dir}">${t.dir.toUpperCase()}</span>`:''}
+        ${t.res?`<span class="badge ${t.res}">${t.res.toUpperCase()}</span>`:''}
+        ${t.r?`<span class="${t.r>0?'pnl-p':'pnl-n'}" style="font-size:12px;font-weight:600">${t.r>0?'+':''}${t.r}R</span>`:''}
+        ${t.valid?`<span class="badge ${t.valid}">${t.valid}</span>`:''}
+      </div>
+      ${jPart?`<div class="entry-narrative">${jPart}</div>`:''}
+      ${t.note&&!jPart?`<div class="entry-narrative">${t.note}</div>`:''}
+      ${rPart?`<div class="entry-review">MENTOR: ${rPart}</div>`:t.review?`<div class="entry-review">MENTOR: ${t.review}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ─── CALENDAR ────────────────────────────────────────────
+function addEvent(){
+  const ev={
+    id:Date.now(),
+    date:document.getElementById('ev-date').value,
+    time:document.getElementById('ev-time').value,
+    name:document.getElementById('ev-name').value,
+    impact:getVal('ev-impact'),
+    note:document.getElementById('ev-note').value
+  };
+  if(!ev.name)return;
+  D.events.unshift(ev);save();renderEvents();
+  document.getElementById('ev-date').value='';
+  document.getElementById('ev-time').value='';
+  document.getElementById('ev-name').value='';
+  document.getElementById('ev-note').value='';
+}
+
+function renderEvents(){
+  const el=document.getElementById('events-list');
+  if(!D.events.length){el.innerHTML='<div class="empty">No events added.</div>';return;}
+  el.innerHTML='<div class="card">'+D.events.map(e=>`
+    <div class="cal-event">
+      <div class="cal-time">
+        <span class="cal-impact ${(e.impact||'').toLowerCase()}"></span>
+        ${e.impact||''} impact · ${e.date||''} ${e.time||''}
+      </div>
+      <div class="cal-name">${e.name}</div>
+      ${e.note?`<div style="font-size:11px;color:var(--text3);margin-top:3px">${e.note}</div>`:''}
+    </div>`).join('')+'</div>';
+}
+
+// ─── BRAIN ───────────────────────────────────────────────
+function buildContext(){
+  const q=D.q,m=D.m,w=D.w,s=D.s;
+  return `QUARTERLY: bias=${q.bias||'?'}, phase=${q.phase||'?'}, position=${q.pos||'?'}, targets=${q.targets||'not set'}, narrative=${q.narrative||'not written'}
+MONTHLY: bias=${m.bias||'?'}, position=${m.pos||'?'}, draw=${m.draw||'?'}, levels=${m.levels||'not set'}, narrative=${m.narrative||'not written'}, long-term targets=${m.longtargets||'not set'}
+WEEKLY: bias=${w.bias||'?'}, structure=${w.str||'?'}, position=${w.pos||'?'}, draw=${w.draw||'?'}, pattern=${w.pat||'?'}, narrative=${w.narrative||'not written'}, rules=${(w.dont||[]).join('/')||'none set'}
+TODAY: day=${s.day||'?'}, bias=${s.bias||'?'}, draw=${s.draw||'?'}, session=${s.sess||'?'}, narrative=${s.narrative||'not written'}`;
+}
+
+function updateBrainContext(){
+  const q=D.q,m=D.m,w=D.w;
+  const line=document.getElementById('brain-context-line');
+  const parts=[];
+  if(q.bias)parts.push(`Q: ${q.bias}`);
+  if(m.bias)parts.push(`Monthly: ${m.bias}`);
+  if(w.bias)parts.push(`Weekly: ${w.bias}`);
+  if(w.draw)parts.push(`Draw: ${w.draw}`);
+  line.textContent=parts.length?parts.join(' · '):'Add macro + weekly data first';
+
+  const pills=document.getElementById('context-pills');
+  const items=[
+    {label:'Quarterly',val:q.bias,phase:q.phase,pos:q.pos},
+    {label:'Monthly',val:m.bias,draw:m.draw,pos:m.pos},
+    {label:'Weekly',val:w.bias,draw:w.draw,pat:w.pat},
+    {label:'Today',val:D.s.bias,draw:D.s.draw}
+  ];
+  pills.innerHTML=items.map(item=>{
+    const cls=item.val==='Bullish'?'bull':item.val==='Bearish'?'bear':item.val?'ambi':'';
+    const details=[item.phase,item.pos,item.draw,item.pat].filter(Boolean).join(' · ');
+    return`<div class="status-bar">
+      <div class="status-dot ${item.val?'green':'grey'}"></div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${item.label}</div>
+        ${item.val?`<span class="badge ${cls}" style="margin-top:3px">${item.val}</span>`:''} ${details?`<span style="font-size:11px;color:var(--text2)">${details}</span>`:'<span style="font-size:11px;color:var(--text3)">Not set</span>'}
+      </div>
+    </div>`;
+  }).join('');
+
+  const valid=D.trades.filter(t=>t.valid==='valid');
+  const wins=valid.filter(t=>t.res==='win');
+  const totalR=valid.reduce((s,t)=>s+(t.res==='win'?t.r:t.res==='loss'?-Math.abs(t.r):0),0);
+  document.getElementById('brain-metrics').innerHTML=`
+    <div class="metric"><div class="metric-val">${valid.length?Math.round(wins.length/valid.length*100)+'%':'—'}</div><div class="metric-lbl">Win rate</div></div>
+    <div class="metric"><div class="metric-val ${totalR>=0?'pnl-p':'pnl-n'}">${totalR>=0?'+':''}${totalR.toFixed(1)}R</div><div class="metric-lbl">Total R</div></div>
+    <div class="metric"><div class="metric-val">${D.trades.length}</div><div class="metric-lbl">Total trades</div></div>
+    <div class="metric"><div class="metric-val">${D.trades.filter(t=>t.valid==='valid').length}</div><div class="metric-lbl">Valid taken</div></div>`;
+}
+
+function brainQuick(q){document.getElementById('brain-q').value=q;runBrain();}
+
+async function runBrain(){
+  const btn=document.getElementById('brain-btn');
+  const wrap=document.getElementById('brain-out-wrap');
+  const out=document.getElementById('brain-out');
+  const q=document.getElementById('brain-q').value.trim();
+  if(!q)return;
+  btn.disabled=true;btn.textContent='Thinking...';
+  wrap.style.display='block';out.textContent='Analyzing all your data...';
+  const ctx=buildContext();
+  const recentTrades=D.trades.slice(0,8).map((t,i)=>`${i+1}. ${t.type} ${t.day||'?'} ${t.dir||'?'} ${t.res||'?'} ${t.r||0}R ${t.valid||'?'}`).join('\n');
+  const fullPrompt=`TRADER'S MARKET DATA:\n${ctx}\n\nRECENT TRADES:\n${recentTrades||'No trades logged yet'}\n\nTRADER'S QUESTION:\n${q}`;
+  try{
+    const text=await callAI(fullPrompt,`You are an ICT/IPDA trading mentor acting as the trader's analytical brain. You have access to their complete market context including quarterly, monthly, weekly, and daily data plus their trade history.
+
+Your role is NOT to react — it is to ANALYZE. You think deeper than the surface. You:
+1. Synthesize multiple timeframes and flag conflicts or alignments
+2. Reference specific ICT concepts by name (AMD model, Judas swing, dealing range, IPDA draw, killzones, etc.)
+3. Give specific, actionable insights based on their actual data — not generic advice
+4. Point out what they might be missing or not considering
+5. If timeframes conflict, say so explicitly and explain which one dominates
+6. Think about time — what day of the week, what session, what quarterly phase
+7. Be direct and honest — if the setup is weak, say so
+
+Write in a clear, mentor voice. 4-6 sentences unless the question requires more depth. No markdown formatting, no bullet points, no asterisks. Write fluidly as a mentor speaking to their student.`);
+    out.textContent=text;
+  }catch(e){out.textContent='Error connecting to AI. Check your internet connection and try again.';}
+  btn.disabled=false;btn.textContent='Analyze ↗';
+}
+
+// ─── API CALL ────────────────────────────────────────────
+async function callAI(userMsg,systemMsg){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:800,
+      system:systemMsg,
+      messages:[{role:'user',content:userMsg}]
+    })
+  });
+  const data=await res.json();
+  if(data.error)throw new Error(data.error.message);
+  return data.content.map(b=>b.text||'').join('');
+}
+
+// ─── INIT ────────────────────────────────────────────────
+function init(){
+  load();
+  // Set labels
+  const now=new Date();
+  const q=Math.ceil((now.getMonth()+1)/3);
+  document.getElementById('q-label').textContent=q+' '+now.getFullYear();
+  document.getElementById('m-label').textContent=now.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);
+  const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+4);
+  document.getElementById('week-label-header').textContent='Week of '+weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  // Restore saved values
+  if(D.q.high)document.getElementById('q-high').value=D.q.high;
+  if(D.q.low)document.getElementById('q-low').value=D.q.low;
+  if(D.q.targets)document.getElementById('q-targets').value=D.q.targets;
+  if(D.q.narrative)document.getElementById('q-narrative').value=D.q.narrative;
+  if(D.m.open)document.getElementById('m-open').value=D.m.open;
+  if(D.m.high)document.getElementById('m-high').value=D.m.high;
+  if(D.m.low)document.getElementById('m-low').value=D.m.low;
+  if(D.m.levels)document.getElementById('m-levels').value=D.m.levels;
+  if(D.m.narrative)document.getElementById('m-narrative').value=D.m.narrative;
+  if(D.m.longtargets)document.getElementById('m-longtargets').value=D.m.longtargets;
+  if(D.w.levels)document.getElementById('w-levels').value=D.w.levels;
+  if(D.w.narrative)document.getElementById('w-narrative').value=D.w.narrative;
+  if(D.seasonal.notes)document.getElementById('seasonal-notes').value=D.seasonal.notes;
+  // Render
+  renderWeeklyHistory();
+  renderEvents();
+  updateBrainContext();
+}
+
+init();
+</script>
+</body>
+</html>
