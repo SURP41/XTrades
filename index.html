@@ -652,413 +652,1559 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
   </button>
 </div>
 
-<script>
-// ─── STATE ──────────────────────────────────────────────
-const D={
-  q:{bias:null,phase:null,pos:null,high:'',low:'',targets:'',narrative:''},
-  m:{bias:null,pos:null,draw:null,open:'',high:'',low:'',levels:'',narrative:'',longtargets:''},
-  seasonal:{notes:''},
-  w:{bias:null,str:null,pos:null,draw:null,levels:'',day:null,pat:null,narrative:'',dont:[]},
-  s:{day:null,bias:null,draw:null,sess:null,levels:'',narrative:''},
-  lt:{dir:null,trigger:[],valid:null,res:null},
-  bt:{day:null,dir:null,m15:[],m1:[],res:null,valid:null},
-  ev:{impact:null},
-  trades:[],
-  events:[],
-  weeklyHistory:[],
-  pendingBt:null
+<script> 'use strict';
+ 
+/* ============================================================
+   ▸ 1. CONFIGURATION & API SERVICE ABSTRACTION
+   Swap BRAIN_ENDPOINT to your backend proxy URL when
+   going public. Zero other changes required.
+   ============================================================ */
+ 
+const CFG = {
+  // Reads from env if bundled (Expo/Vite), falls back to localStorage
+  get apiKey() {
+    return (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_ANTHROPIC_KEY)
+      || localStorage.getItem('ipda_api_key')
+      || '';
+  },
+  get endpoint() {
+    return (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL)
+      || localStorage.getItem('ipda_endpoint')
+      || 'https://api.anthropic.com/v1/messages';
+  },
+  model:        'claude-sonnet-4-20250514',
+  maxTokens:    950,
+  minScore:     7,   // 7/10 rule
+  lockoutHours: 4,
+  storageKey:   'ipda_brain_v3',
+  strikesKey:   'ipda_strikes_v2',
 };
-
-// ─── PERSISTENCE ────────────────────────────────────────
-function save(){try{localStorage.setItem('ipda_brain_v1',JSON.stringify(D));}catch(e){}}
-function load(){
-  try{
-    const raw=localStorage.getItem('ipda_brain_v1');
-    if(raw){const saved=JSON.parse(raw);Object.assign(D,saved);}
-  }catch(e){}
+ 
+/**
+ * brainService(userMessage, systemMessage)
+ * THE ONLY FUNCTION THAT TOUCHES THE API.
+ * Swap CFG.endpoint → your proxy URL. Done.
+ */
+async function brainService(userMessage, systemMessage) {
+  const isDirect = CFG.endpoint.includes('anthropic.com');
+ 
+  if (isDirect && !CFG.apiKey) {
+    throw new Error(
+      'No API key set.\nOpen Settings (⚙) → paste your key from console.anthropic.com'
+    );
+  }
+ 
+  const headers = { 'Content-Type': 'application/json' };
+  if (isDirect) {
+    headers['x-api-key']                                    = CFG.apiKey;
+    headers['anthropic-version']                            = '2023-06-01';
+    headers['anthropic-dangerous-direct-browser-access']   = 'true';
+  }
+  // Proxy mode: server authenticates — nothing sensitive leaves the client
+ 
+  const res = await fetch(CFG.endpoint, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model:      CFG.model,
+      max_tokens: CFG.maxTokens,
+      system:     systemMessage,
+      messages:   [{ role: 'user', content: userMessage }],
+    }),
+  });
+ 
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+  }
+ 
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.content.map(b => b.text || '').join('');
 }
-
-// ─── PILL SELECTORS ─────────────────────────────────────
-function sel(el){
-  const g=el.dataset.g;
-  document.querySelectorAll(`[data-g="${g}"]`).forEach(e=>e.className=e.className.replace(/\s*(on|bull|bear|ambi|info)/g,''));
+ 
+/* ============================================================
+   ▸ 2. ICT KNOWLEDGE BASE — SYSTEM PROMPT
+   This is sent with every AI request.
+   Derived from ICT Mentorship core concepts.
+   ============================================================ */
+ 
+const ICT_SYSTEM_PROMPT = `You are the IPDA Trading Brain. You are an institutional ICT trading mentor with mastery of the following concepts. Apply them rigorously in every response.
+ 
+IPDA ALGORITHM:
+Price is algorithmically delivered between liquidity pools. It originates from an imbalance and terminates at liquidity — or originates from liquidity and terminates at an imbalance. The algorithm looks back 20, 40, and 60 trading days to identify resting liquidity targets (BSL above equal highs, prior highs; SSL below equal lows, prior lows). ALWAYS identify the Draw on Liquidity (DOL) before evaluating anything. Everything flows from the DOL.
+ 
+JUDAS SWING — YOUR PRIMARY FILTER:
+The Judas Swing is a manipulative move OPPOSITE to the true direction. It appears at session opens, especially London (2-5am EST). It breaks a key level aggressively, triggers stops, then immediately reverses with displacement in the true direction. ALWAYS ask: is this move the Judas or the real delivery? This is the single most common reason developing traders enter wrong. If price broke a level and immediately reversed with a strong displacement candle — that was the Judas. The real move has already begun in the opposite direction.
+ 
+AMD MODEL:
+Accumulation → price ranges, builds orders on both sides.
+Manipulation → the Judas Swing. False move, raids stop clusters.
+Distribution → true delivery toward the DOL. Begins with displacement.
+You CANNOT enter during manipulation and profit consistently. Wait for manipulation to complete, then enter the distribution leg.
+ 
+DRAW ON LIQUIDITY:
+Every setup requires naming the specific DOL. "Bullish" is not a DOL. "Previous day high at 21,400" is a DOL. Name it. The DOL on the highest confirmed timeframe is the primary target. All lower timeframe analysis serves to find entry into the move toward that DOL.
+ 
+MARKET STRUCTURE:
+BOS (Break of Structure): confirms continuation, but only valid with displacement.
+CHoCH (Change of Character): first signal of reversal. Requires a structural swing broken opposite to trend.
+Displacement: large institutional candle leaving a FVG. The algorithm's fingerprint. Without displacement, a BOS or CHoCH is suspect.
+ 
+FAIR VALUE GAP (FVG):
+3-candle imbalance. Top of the FVG = bottom of candle 1's wick. Bottom of the FVG = top of candle 3's wick. Price must return to fill it before continuing in most cases. The FVG within the OTE zone (61.8-79% retracement of the displacement leg) is the actual entry — not the OTE level itself. Do not enter the displacement candle. Wait for the retracement.
+ 
+ORDER BLOCKS:
+The last opposing candle before a strong directional move. Bullish OB: last bearish candle before a bullish BOS with displacement. Bearish OB: last bullish candle before a bearish BOS with displacement. If price returns to an OB with a FVG inside it — the confluence is extremely high.
+ 
+ENTRY MODEL (LTF):
+1. Price displaces from the manipulation low/high leaving a 15m FVG.
+2. Price retraces into that 15m FVG during a killzone.
+3. On 1m: internal stop hunt of lows (for longs) inside the FVG zone.
+4. 1m CHoCH confirms — structure flips in trade direction.
+5. Enter at the 1m FVG left by the CHoCH displacement.
+6. Stop: below the manipulation low (the stop hunt low). Not below the entry candle.
+7. Target: the named DOL identified on the HTF.
+ 
+INTERMARKET ANALYSIS:
+DXY (Dollar Index): inverse correlation with risk assets and EUR/GBP/AUD. DXY bullish = bearish for indices, EUR, GBP. Check DXY direction before every trade.
+SMT Divergence: when two correlated instruments fail to confirm the same high or low. ES makes new high, NQ does not = bearish SMT = institutional distribution in progress. This is one of ICT's highest-probability signals.
+Bond yields: rising yields = risk-off = bearish indices.
+ 
+SEASONAL TENDENCIES:
+Q1 (Jan-Mar): bullish expansion. Yearly open is the primary reference.
+Q2 (Apr-Jun): retracement or distribution. Yearly high often forms here.
+Q3 (Jul-Sep): accumulation. August is the slowest month. Reduce frequency.
+Q4 (Oct-Dec): strong trending. October low is often significant. Hold winners longer.
+Monthly cycle: first 3 days = opening range. Mid-month = manipulation. Week 3-4 = distribution. Last week = close positions.
+ 
+PSYCHOLOGY (Mark Douglas + ICT):
+Think in probabilities. A loss on a valid setup is not a mistake. A win on an invalid setup is the most dangerous outcome — it reinforces bad behavior and will eventually destroy your account.
+Your job is to read the algorithm's delivery path, not to predict markets. When you are wrong, the algorithm showed you something — listen to it.
+Deviation from your model is not a trading decision. It is an emotional decision masquerading as one.
+ 
+KILLZONES:
+London open (2-5am EST): Judas Swing window. Do not enter the initial spike.
+NY AM open (7-10am EST): primary distribution window. Best R setups form here.
+Silver Bullet (10-11am and 2-3pm EST): FVG formed INSIDE this window only.
+Outside killzones: do not enter. Random-hour moves are retail traps.
+ 
+RED FOLDER PROTOCOL:
+No entries 30 minutes before or 15 minutes after high-impact news. After release: watch for Judas Swing, then identify true direction from displacement.
+ 
+YOUR ANALYTICAL MANDATE:
+1. Name the Draw on Liquidity specifically. Never say "bullish/bearish" without naming the target level.
+2. Check for Judas Swing risk. Is the current move manipulation or distribution?
+3. Identify the AMD phase. You cannot evaluate an entry without knowing the phase.
+4. Check intermarket (DXY direction, SMT divergence between correlated pairs).
+5. Name the specific ICT pattern in play by its correct name.
+6. If timeframes conflict, name which dominates and precisely why.
+7. End with ONE specific actionable instruction — not a list, one thing.
+ 
+RESPONSE STYLE:
+Direct mentor voice. Speak to the trader as someone who knows the model but is still developing discipline. Be honest when a setup is weak — a false validation is more harmful than a missed trade. No markdown, no bullet points, no asterisks. Write in continuous prose, 5-8 sentences. If the setup is invalid, say so clearly and briefly. Do not soften it.`;
+ 
+/* ============================================================
+   ▸ 3. STATE
+   Single source of truth. Everything reads from here.
+   ============================================================ */
+ 
+const D = {
+  // Macro analysis
+  q: { bias:null, phase:null, pos:null, high:'', low:'', targets:'', intermarket:'', narrative:'' },
+  m: { bias:null, pos:null, draw:null, open:'', high:'', low:'', levels:'', narrative:'', longtargets:'' },
+  seasonal: { notes:'' },
+  // Weekly plan
+  w: { bias:null, str:null, pos:null, draw:null, levels:'', day:null, pat:null, narrative:'', dont:[] },
+  // Session (daily)
+  s: { day:null, bias:null, draw:null, sess:null, levels:'', narrative:'' },
+  // Scratch state for pill groups (rebuilt from DOM when needed)
+  ev: { impact:null },
+  // Logged data
+  trades: [],
+  events: [],
+  weeklyHistory: [],
+  pendingBt: null,
+};
+ 
+/* ============================================================
+   ▸ 4. PERSISTENCE
+   ============================================================ */
+ 
+function save() {
+  try {
+    // Don't persist pendingBt — it's transient
+    const { pendingBt: _p, ...toSave } = D;
+    localStorage.setItem(CFG.storageKey, JSON.stringify(toSave));
+  } catch (e) { console.warn('[IPDA] Save failed:', e.message); }
+}
+ 
+function load() {
+  try {
+    const raw = localStorage.getItem(CFG.storageKey);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      // Deep merge: saved values override defaults, missing keys keep defaults
+      Object.keys(saved).forEach(k => {
+        if (k in D && typeof D[k] === 'object' && !Array.isArray(D[k])) {
+          D[k] = { ...D[k], ...saved[k] };
+        } else if (k in D) {
+          D[k] = saved[k];
+        }
+      });
+    }
+  } catch (e) { console.warn('[IPDA] Load failed:', e.message); }
+}
+ 
+/* ============================================================
+   ▸ 5. STRIKE SYSTEM
+   ============================================================ */
+ 
+function strikeLoad() {
+  try {
+    const raw = localStorage.getItem(CFG.strikesKey);
+    return raw ? JSON.parse(raw) : { count:0, lockoutUntil:null, history:[] };
+  } catch { return { count:0, lockoutUntil:null, history:[] }; }
+}
+ 
+function strikeSave(s) {
+  localStorage.setItem(CFG.strikesKey, JSON.stringify(s));
+}
+ 
+function strikeIsLockedOut(s) {
+  return !!(s.lockoutUntil && Date.now() < s.lockoutUntil);
+}
+ 
+function strikeLockoutRemaining(s) {
+  if (!s.lockoutUntil) return null;
+  const rem = s.lockoutUntil - Date.now();
+  if (rem <= 0) return null;
+  return {
+    h:   Math.floor(rem / 3_600_000),
+    m:   Math.floor((rem % 3_600_000) / 60_000),
+    sec: Math.floor((rem % 60_000) / 1_000),
+    total: rem,
+  };
+}
+ 
+/**
+ * strikeAdd(reason, score)
+ * Called when a trader logs an invalid setup or
+ * a trade scoring below 7/10.
+ */
+function strikeAdd(reason = 'Invalid setup', score = 0) {
+  const s = strikeLoad();
+  if (strikeIsLockedOut(s)) return s;           // no stacking during lockout
+ 
+  s.count = Math.min((s.count || 0) + 1, 3);
+  s.history = [
+    { ts: Date.now(), reason, score, strike: s.count },
+    ...(s.history || []),
+  ].slice(0, 30);
+ 
+  if (s.count >= 3) {
+    s.lockoutUntil = Date.now() + CFG.lockoutHours * 3_600_000;
+  }
+ 
+  strikeSave(s);
+  strikeUpdateUI();
+  return s;
+}
+ 
+/**
+ * strikeReset()
+ * Only callable after lockout has naturally expired,
+ * or from Settings by the trader.
+ */
+function strikeReset() {
+  const s = strikeLoad();
+  if (strikeIsLockedOut(s)) {
+    toast('⛔ Lockout still active — cannot reset yet');
+    return;
+  }
+  strikeSave({ count:0, lockoutUntil:null, history:[] });
+  strikeUpdateUI();
+  toast('Strikes reset ✓');
+}
+ 
+/**
+ * strikeCheckExpiry()
+ * Called on every app open — auto-clears expired lockouts.
+ */
+function strikeCheckExpiry() {
+  const s = strikeLoad();
+  if (s.lockoutUntil && Date.now() >= s.lockoutUntil) {
+    s.count = 0;
+    s.lockoutUntil = null;
+    strikeSave(s);
+  }
+  return strikeLoad();
+}
+ 
+/* ── Strike mode derivation ── */
+function strikeGetMode(s) {
+  if (s.count >= 3 || strikeIsLockedOut(s)) return 'BRUTAL';
+  if (s.count === 2) return 'WARNING';
+  if (s.count === 1) return 'CAUTION';
+  return 'CLEAN';
+}
+ 
+function strikeUpdateUI() {
+  const s = strikeLoad();
+  const mode = strikeGetMode(s);
+  const ind = document.getElementById('strike-indicator');
+ 
+  // Body class drives CSS variable overrides (defined in your CSS shell)
+  document.body.classList.remove('brutal', 'strike2', 'strike1');
+  if (ind) {
+    ind.className = '';
+    if (mode === 'BRUTAL')  { document.body.classList.add('brutal');  ind.classList.add('s3'); }
+    if (mode === 'WARNING') { document.body.classList.add('strike2'); ind.classList.add('s2'); }
+    if (mode === 'CAUTION') {                                          ind.classList.add('s1'); }
+  }
+ 
+  // Update settings modal if open
+  const settingsStrikes = document.getElementById('settings-strikes');
+  if (settingsStrikes) settingsStrikes.textContent = s.count;
+}
+ 
+/* ============================================================
+   ▸ 6. BRUTAL MODE SCREEN
+   Shown when strikes === 3 or lockout is active.
+   ============================================================ */
+ 
+let _brutalTick = null;
+ 
+function brutalShow(s) {
+  const screen = document.getElementById('brutal-screen');
+  if (!screen) return;
+ 
+  document.body.classList.add('brutal');
+  screen.classList.add('active');
+ 
+  // Set unlock time display
+  const until = new Date(s.lockoutUntil);
+  const untilEl = document.getElementById('brutal-until');
+  if (untilEl) {
+    untilEl.textContent = 'Unlocks at ' +
+      until.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12:true });
+  }
+ 
+  // Countdown ticker
+  if (_brutalTick) clearInterval(_brutalTick);
+  _brutalTick = setInterval(() => {
+    const rem = strikeLockoutRemaining(strikeLoad());
+    const el  = document.getElementById('brutal-countdown');
+    if (!rem) {
+      clearInterval(_brutalTick);
+      screen.classList.remove('active');
+      document.body.classList.remove('brutal');
+      strikeUpdateUI();
+      return;
+    }
+    if (el) {
+      el.textContent =
+        String(rem.h).padStart(2,'0') + ':' +
+        String(rem.m).padStart(2,'0') + ':' +
+        String(rem.sec).padStart(2,'0');
+    }
+  }, 1000);
+}
+ 
+/* ============================================================
+   ▸ 7. MINDSET GATE (long-press acknowledgment)
+   ============================================================ */
+ 
+const QUOTES_CLEAN = [
+  { text: "Think in probabilities. Your edge plays out over a series of trades — not one.",                    attr: "Mark Douglas, Trading in the Zone" },
+  { text: "The goal of a successful trader is to make the best trades. Money is secondary.",                   attr: "Alexander Elder" },
+  { text: "The market does not know you exist. It owes you nothing. Align with it or step aside.",            attr: "ICT Mentorship" },
+  { text: "React to what the market is doing, not what you think it should do.",                              attr: "Jesse Livermore" },
+  { text: "Patience is not passive waiting. It is active watching for the right moment.",                     attr: "ICT — Killzone Theory" },
+  { text: "You have power over your mind, not outside events. Realize this and you will find strength.",      attr: "Marcus Aurelius, Meditations" },
+  { text: "The algorithm does not care about your opinion. It cares about liquidity.",                        attr: "ICT — IPDA Framework" },
+  { text: "In trading, being wrong is unavoidable. Staying wrong is a choice.",                               attr: "Mark Douglas" },
+  { text: "Amateurs think about how much money they can make. Professionals think about risk.",                attr: "Jack Schwager" },
+  { text: "It is not the strongest of the species that survives, but the one most adaptable to change.",      attr: "Darwin" },
+];
+ 
+const QUOTES_WARNING = [
+  { text: "You have one strike remaining. The next deviation triggers a 4-hour lockout. Execute only at 7/10 or above.", attr: "IPDA Brain — Strike Warning" },
+  { text: "Two deviations. The algorithm will exploit your current state. One more and you are locked out. No exceptions.", attr: "IPDA Brain — Final Warning" },
+];
+ 
+let _holdTimer    = null;
+let _holdInterval = null;
+let _holdProgress = 0;
+const HOLD_MS     = 1800;
+ 
+function gateShow() {
+  const s = strikeCheckExpiry();
+ 
+  // Locked out → go straight to brutal screen
+  if (strikeIsLockedOut(s)) { brutalShow(s); return; }
+ 
+  const gate   = document.getElementById('mindset-gate');
+  const mode   = strikeGetMode(s);
+  if (!gate) return;
+ 
+  gate.classList.add('active');
+  _holdProgress = 0;
+  const fill = document.getElementById('hold-fill');
+  if (fill) fill.style.width = '0%';
+ 
+  // Pick quote
+  const isWarning = s.count >= 1;
+  const pool      = isWarning ? QUOTES_WARNING : QUOTES_CLEAN;
+  const dayIdx    = Math.floor(Date.now() / 86_400_000) % pool.length;
+  const q         = isWarning
+    ? QUOTES_WARNING[Math.min(s.count - 1, QUOTES_WARNING.length - 1)]
+    : pool[dayIdx];
+ 
+  // Populate quote
+  const qText = document.getElementById('gate-quote-text');
+  const qAttr = document.getElementById('gate-quote-attr');
+  if (qText) qText.textContent = '"' + q.text + '"';
+  if (qAttr) qAttr.textContent = '— ' + q.attr;
+ 
+  // Badge
+  const badge = document.getElementById('gate-badge');
+  if (badge) {
+    const labels = { CLEAN:'SESSION ENTRY', CAUTION:'⚡ STRIKE 1 OF 3', WARNING:'⚡⚡ STRIKE 2 — FINAL WARNING' };
+    const colors = { CLEAN:'#42a5f5', CAUTION:'#ffd700', WARNING:'#ff9800' };
+    badge.textContent = labels[mode] || 'SESSION ENTRY';
+    badge.style.color = colors[mode] || '#42a5f5';
+  }
+ 
+  // Intentions title color
+  const intTitle = document.getElementById('intentions-title');
+  if (intTitle) {
+    const colors = { CLEAN:'#42a5f5', CAUTION:'#ffd700', WARNING:'#ff9800' };
+    intTitle.style.color = colors[mode] || '#42a5f5';
+    intTitle.textContent = 'Before entering this session, I confirm:';
+  }
+ 
+  // Hold button styling
+  const btn = document.getElementById('hold-btn');
+  if (btn) {
+    const accentColor = mode === 'CLEAN' ? '#42a5f5' : mode === 'CAUTION' ? '#ffd700' : '#ff9800';
+    btn.style.borderColor = accentColor;
+    btn.style.color       = accentColor;
+    if (fill) fill.style.background = accentColor;
+    document.getElementById('hold-instruction').textContent = 'Hold to acknowledge';
+    btn.textContent = 'HOLD TO ACKNOWLEDGE & ENTER';
+  }
+}
+ 
+function startHold() {
+  if (_holdTimer) return;
+  const fill  = document.getElementById('hold-fill');
+  const btn   = document.getElementById('hold-btn');
+  const start = Date.now();
+ 
+  _holdInterval = setInterval(() => {
+    _holdProgress = (Date.now() - start) / HOLD_MS;
+    if (fill) fill.style.width = Math.min(_holdProgress * 100, 100) + '%';
+  }, 30);
+ 
+  _holdTimer = setTimeout(() => {
+    clearInterval(_holdInterval);
+    _holdTimer = null;
+    // Acknowledged
+    if (btn) btn.textContent = '✓ ACKNOWLEDGED — ENTERING SESSION';
+    const instr = document.getElementById('hold-instruction');
+    if (instr) instr.textContent = '✓ Acknowledged';
+    if (fill) fill.style.width = '100%';
+ 
+    setTimeout(() => {
+      const gate = document.getElementById('mindset-gate');
+      if (gate) gate.classList.remove('active');
+    }, 500);
+  }, HOLD_MS);
+}
+ 
+function endHold() {
+  if (!_holdTimer) return;
+  clearTimeout(_holdTimer);
+  clearInterval(_holdInterval);
+  _holdTimer = null;
+ 
+  // Animate fill back to 0
+  let w = _holdProgress * 100;
+  const fill = document.getElementById('hold-fill');
+  const decay = setInterval(() => {
+    w = Math.max(0, w - 6);
+    if (fill) fill.style.width = w + '%';
+    if (w <= 0) clearInterval(decay);
+  }, 16);
+}
+ 
+/* ============================================================
+   ▸ 8. 7/10 DECISION ENGINE
+   Ten ICT items. Score < 7 = "RETAIL LIQUIDITY DETECTED".
+   ============================================================ */
+ 
+const DE_ITEMS = [
+  {
+    id: 'seasonal', cat: 'MACRO', label: 'Seasonal tendency aligned',
+    desc: 'Q1 bullish / Q2 distribution / Q3 accumulation / Q4 trending — current position matches quarterly delivery pattern.',
+    ref:  'ICT: Quarterly Theory & Seasonal Tendencies',
+  },
+  {
+    id: 'quarterly', cat: 'MACRO', label: 'Quarterly bias confirmed — IPDA 20/40/60d',
+    desc: 'Weekly and monthly structure confirms quarterly narrative. IPDA 20/40/60 day liquidity targets are identified and aligned.',
+    ref:  'ICT: IPDA Quarterly Shift — 20/40/60 day lookback',
+  },
+  {
+    id: 'monthly', cat: 'BIAS', label: 'Monthly bias confirmed — correct range position',
+    desc: 'Price is in correct position within the monthly dealing range. Monthly Draw on Liquidity is named and consistent with trade direction.',
+    ref:  'ICT: Monthly Chart Analysis & Dealing Range',
+  },
+  {
+    id: 'weekly', cat: 'BIAS', label: 'Weekly bias + day profile aligned',
+    desc: "Weekly structure (HH/HL or LH/LL) is clear. Today's day aligns with the expected delivery profile. Tuesday = manipulation, Wed-Thu = distribution.",
+    ref:  'ICT: Weekly Profile — Tuesday manipulation, Wednesday-Thursday distribution',
+  },
+  {
+    id: 'dxy', cat: 'INTERMARKET', label: 'DXY correlated — no intermarket conflict',
+    desc: 'Dollar Index is moving in alignment with the trade direction. For index/risk-asset longs: DXY is declining or neutral. No DXY conflict detected.',
+    ref:  'ICT: Interbank Flow & DXY Correlation',
+  },
+  {
+    id: 'smt', cat: 'INTERMARKET', label: 'SMT divergence checked',
+    desc: 'Correlated instruments (ES/NQ or EUR/GBP) are confirming the same high or low. If one makes a new high/low and the other does not — that divergence IS the signal.',
+    ref:  'ICT: Smart Money Technique (SMT) Divergence',
+  },
+  {
+    id: 'amd', cat: 'NARRATIVE', label: 'Manipulation leg complete — AMD phase confirmed',
+    desc: 'London or NY swept the relevant range. Stop hunt occurred on the correct side. The Judas Swing has completed. Not entering during the manipulation leg.',
+    ref:  'ICT: AMD Model — Accumulation, Manipulation, Distribution. Judas Swing identification.',
+  },
+  {
+    id: 'fvg', cat: 'ENTRY', label: '15m displacement + FVG formed and marked',
+    desc: 'Large-body 15m displacement candle left a clear 3-candle FVG. Price has retraced or is retracing into the FVG. Zone is precisely marked on the chart.',
+    ref:  'ICT: Fair Value Gap, Displacement, Institutional Order Flow',
+  },
+  {
+    id: 'chaoch', cat: 'ENTRY', label: '1m CHoCH confirmed inside FVG/OTE zone',
+    desc: 'Price retraced to 15m FVG or OTE (61.8-79%). On 1m: internal stop hunt occurred inside the zone, then a 1m swing was broken in the trade direction. Entry is AFTER the CHoCH.',
+    ref:  'ICT: Lower Timeframe Entry Model — 1m CHoCH, internal liquidity raid',
+  },
+  {
+    id: 'killzone', cat: 'TIMING', label: 'Killzone timing — no Red Folder conflict',
+    desc: 'Entry is within London open, NY AM open, or Silver Bullet window. No high-impact news within 30 minutes. Red Folder Protocol has been checked.',
+    ref:  'ICT: Killzone Theory, Silver Bullet 10-11am / 2-3pm EST, Red Folder Protocol',
+  },
+];
+ 
+const DE_CAT_COLORS = {
+  MACRO:       '#ce93d8',
+  BIAS:        '#42a5f5',
+  INTERMARKET: '#ff9800',
+  NARRATIVE:   '#4caf50',
+  ENTRY:       '#26c6da',
+  TIMING:      '#ffd700',
+};
+ 
+// checked[id] = true | false | undefined
+let _deChecked  = {};
+let _deExpanded = {};
+ 
+/** Return current score from checked items */
+function deScore() {
+  return DE_ITEMS.filter(i => _deChecked[i.id] === true).length;
+}
+ 
+/** Main 7/10 gate: returns true if score >= CFG.minScore */
+function dePassed() {
+  return deScore() >= CFG.minScore;
+}
+ 
+/**
+ * scanAndGate()
+ * Called after every pill tap, every tab switch to Session,
+ * and before logLiveTrade / logBacktest.
+ * Enables or disables the execute / log buttons based on score.
+ */
+function scanAndGate() {
+  const score  = deScore();
+  const passed = score >= CFG.minScore;
+ 
+  // Buttons to gate
+  const gatedIds = ['lt-btn', 'bt-btn', 'brain-btn'];
+  gatedIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // Brain button is never gated — analysis always allowed
+    if (id === 'brain-btn') { el.disabled = false; return; }
+    el.disabled = !passed;
+    el.title    = passed ? '' : `Need ${CFG.minScore - score} more confluence items`;
+  });
+ 
+  // Show score inline in session views
+  const scoreDisplay = document.getElementById('de-score-display');
+  if (scoreDisplay) {
+    scoreDisplay.style.display = score > 0 ? 'block' : 'none';
+    const pct   = score / DE_ITEMS.length * 100;
+    const color = pct >= 90 ? '#ffd700' : passed ? '#4caf50' : score >= 4 ? '#ff9800' : '#f44336';
+    scoreDisplay.style.color = color;
+    scoreDisplay.textContent  = passed
+      ? `🎯 ${score}/10 — Valid. Execute with confidence.`
+      : `⛔ ${score}/10 — RETAIL LIQUIDITY DETECTED. Need ${CFG.minScore - score} more.`;
+  }
+ 
+  // If modal is open, re-render it
+  if (document.getElementById('de-modal')?.classList.contains('active')) {
+    deRenderModal();
+  }
+}
+ 
+function deOpen() {
+  document.getElementById('de-modal')?.classList.add('active');
+  deRenderModal();
+}
+ 
+function deClose() {
+  document.getElementById('de-modal')?.classList.remove('active');
+}
+ 
+function deToggle(id) {
+  const cur = _deChecked[id];
+  // Cycle: undefined → true → false → undefined
+  if (cur === undefined) _deChecked[id] = true;
+  else if (cur === true)  _deChecked[id] = false;
+  else                    delete _deChecked[id];
+  deRenderModal();
+  scanAndGate();
+}
+ 
+function deToggleExpand(id) {
+  _deExpanded[id] = !_deExpanded[id];
+  deRenderModal();
+}
+ 
+function deExecute() {
+  if (!dePassed()) return;
+  const scoreDisplay = document.getElementById('de-score-display');
+  if (scoreDisplay) {
+    scoreDisplay.style.display = 'block';
+    scoreDisplay.style.color   = '#4caf50';
+    scoreDisplay.textContent   = `🎯 ${deScore()}/10 — Confluence confirmed. Execute.`;
+  }
+  deClose();
+}
+ 
+function deRenderModal() {
+  const container = document.getElementById('de-items-container');
+  if (!container) return;
+ 
+  const score  = deScore();
+  const passed = score >= CFG.minScore;
+  const pct    = score / DE_ITEMS.length * 100;
+  const color  = pct >= 90 ? '#ffd700' : passed ? '#4caf50' : pct >= 40 ? '#ff9800' : '#f44336';
+ 
+  // Score circle
+  const numEl = document.getElementById('de-score-num');
+  if (numEl) { numEl.textContent = score; numEl.style.color = color; }
+  const circleEl = document.getElementById('de-score-circle');
+  if (circleEl) circleEl.style.borderColor = color;
+  const prog = document.getElementById('de-progress');
+  if (prog) { prog.style.width = pct + '%'; prog.style.background = color; }
+ 
+  // Verdict
+  const verd = document.getElementById('de-verdict');
+  if (verd) {
+    if (score === DE_ITEMS.length) {
+      verd.textContent   = '✦ FULL CONFLUENCE — MAXIMUM INSTITUTIONAL PROBABILITY';
+      verd.style.background  = '#2a2000'; verd.style.borderColor = '#5a4f00'; verd.style.color = '#ffd700';
+    } else if (passed) {
+      verd.textContent   = `✦ VALID SETUP — ${score}/10 CONFIRMED`;
+      verd.style.background  = '#1a3a1a'; verd.style.borderColor = '#2d6a2d'; verd.style.color = '#4caf50';
+    } else {
+      verd.textContent   = `RETAIL LIQUIDITY DETECTED: UNFAVORABLE PROBABILITY — ${score}/10`;
+      verd.style.background  = '#2a0000'; verd.style.borderColor = '#5a0000'; verd.style.color = '#f44336';
+    }
+  }
+ 
+  // Retail warning
+  const warn = document.getElementById('de-retail-warn');
+  if (warn) warn.style.display = (!passed && score > 0) ? 'block' : 'none';
+ 
+  // Execute button
+  const btn = document.getElementById('de-execute-btn');
+  if (btn) {
+    btn.disabled      = !passed;
+    btn.textContent   = passed ? `✦ EXECUTE — ${score}/10 CONFIRMED` : `BLOCKED — ${CFG.minScore - score} MORE REQUIRED`;
+    btn.style.background  = passed ? color   : 'transparent';
+    btn.style.color       = passed ? '#000'  : '#f44336';
+    btn.style.borderColor = passed ? color   : '#6d0000';
+  }
+ 
+  // Build item list grouped by category
+  const groups = {};
+  DE_ITEMS.forEach(item => {
+    if (!groups[item.cat]) groups[item.cat] = [];
+    groups[item.cat].push(item);
+  });
+ 
+  container.innerHTML = Object.entries(groups).map(([cat, items]) => {
+    const catColor = DE_CAT_COLORS[cat] || '#888';
+    const catScore = items.filter(i => _deChecked[i.id] === true).length;
+ 
+    const header = `<div style="
+      display:flex;justify-content:space-between;align-items:center;
+      padding:8px 16px;margin-top:12px;
+      border-left:3px solid ${catColor};padding-left:13px;
+    ">
+      <span style="font-size:10px;font-weight:800;letter-spacing:.09em;color:${catColor}">${cat}</span>
+      <span style="font-size:11px;color:var(--text3)">${catScore}/${items.length}</span>
+    </div>`;
+ 
+    const rows = items.map(item => {
+      const state    = _deChecked[item.id];
+      const isChecked = state === true;
+      const isNo      = state === false;
+      const isExpanded = _deExpanded[item.id];
+ 
+      return `<div style="
+        margin:0 16px 6px;
+        border:.5px solid ${isChecked ? catColor : 'var(--border)'};
+        border-radius:var(--rs,8px);overflow:hidden;
+      ">
+        <div style="display:flex;align-items:flex-start;padding:12px;gap:10px">
+          <div onclick="deToggle('${item.id}')" style="
+            width:26px;height:26px;min-width:26px;border-radius:6px;
+            border:1.5px solid ${isChecked ? catColor : isNo ? 'var(--red)' : 'var(--border2)'};
+            background:${isChecked ? catColor+'22' : isNo ? 'var(--red-bg)' : 'transparent'};
+            display:flex;align-items:center;justify-content:center;
+            cursor:pointer;font-size:13px;font-weight:800;
+            color:${isChecked ? catColor : isNo ? 'var(--red)' : 'transparent'};
+          ">${isChecked ? '✓' : isNo ? '✗' : ''}</div>
+ 
+          <div onclick="deToggleExpand('${item.id}')" style="flex:1;cursor:pointer">
+            <div style="
+              font-size:13px;font-weight:600;line-height:1.4;
+              color:${isChecked ? 'var(--text)' : 'var(--text2)'}
+            ">${item.label}</div>
+            ${isExpanded ? `
+              <div style="font-size:11px;color:var(--text3);margin-top:5px;line-height:1.65">
+                ${item.desc}
+                <div style="font-size:10px;font-weight:700;color:${catColor};margin-top:4px">
+                  ${item.ref}
+                </div>
+              </div>` : ''}
+          </div>
+ 
+          <div onclick="deToggleExpand('${item.id}')" style="font-size:10px;color:var(--text3);cursor:pointer;padding:2px 4px">
+            ${isExpanded ? '▲' : '▼'}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+ 
+    return header + rows;
+  }).join('');
+}
+ 
+/* ============================================================
+   ▸ 9. PILL HELPERS (original, preserved)
+   ============================================================ */
+ 
+function sel(el) {
+  const g = el.dataset.g;
+  document.querySelectorAll(`[data-g="${g}"]`)
+    .forEach(e => e.className = e.className.replace(/\s*(on|bull|bear|ambi|info|gold)/g, ''));
   el.classList.add('on');
 }
-function selC(el,cls){
-  const g=el.dataset.g;
-  document.querySelectorAll(`[data-g="${g}"]`).forEach(e=>e.className=e.className.replace(/\s*(on|bull|bear|ambi|info)/g,''));
+ 
+function selC(el, cls) {
+  const g = el.dataset.g;
+  document.querySelectorAll(`[data-g="${g}"]`)
+    .forEach(e => e.className = e.className.replace(/\s*(on|bull|bear|ambi|info|gold)/g, ''));
   el.classList.add(cls);
 }
-function togP(el){el.classList.toggle('on');}
-
-function getVal(g){
-  const el=document.querySelector(`[data-g="${g}"].on,[data-g="${g}"].bull,[data-g="${g}"].bear,[data-g="${g}"].ambi,[data-g="${g}"].info`);
-  return el?el.dataset.v:null;
+ 
+function togP(el) {
+  el.classList.toggle('on');
+  // Trigger gate rescan if a session pill changed
+  if (['lt-trigger','lt-valid','bt-valid'].includes(el.dataset.g)) {
+    scanAndGate();
+  }
 }
-function getMulti(g){
-  return [...document.querySelectorAll(`[data-g="${g}"].on,[data-g="${g}"].bull,[data-g="${g}"].bear,[data-g="${g}"].ambi,[data-g="${g}"].info`)].map(e=>e.dataset.v);
+ 
+function getVal(g) {
+  const el = document.querySelector(
+    `[data-g="${g}"].on,[data-g="${g}"].bull,[data-g="${g}"].bear,` +
+    `[data-g="${g}"].ambi,[data-g="${g}"].info,[data-g="${g}"].gold`
+  );
+  return el ? el.dataset.v : null;
 }
-
-// ─── TAB NAVIGATION ─────────────────────────────────────
-function showTab(t){
-  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById(t).classList.add('active');
-  const idx=['brain','macro','weekly','session','calendar'].indexOf(t);
-  document.querySelectorAll('.nav-btn')[idx].classList.add('active');
-  if(t==='brain')updateBrainContext();
-  if(t==='session')renderTrades();
+ 
+function getMulti(g) {
+  return [...document.querySelectorAll(
+    `[data-g="${g}"].on,[data-g="${g}"].bull,[data-g="${g}"].bear,` +
+    `[data-g="${g}"].ambi,[data-g="${g}"].info,[data-g="${g}"].gold`
+  )].map(e => e.dataset.v);
 }
-
-// ─── MACRO TAB ──────────────────────────────────────────
-function showMacro(s){
-  ['quarterly','monthly','seasonal'].forEach(x=>{
-    document.getElementById('macro-'+x).style.display=x===s?'block':'none';
+ 
+/* ============================================================
+   ▸ 10. TAB NAVIGATION
+   Session tab triggers mindset gate.
+   ============================================================ */
+ 
+function showTab(tabId) {
+  const TABS = ['brain','macro','weekly','session','calendar'];
+ 
+  // Session requires gate
+  if (tabId === 'session') {
+    const s = strikeCheckExpiry();
+    if (strikeIsLockedOut(s)) { brutalShow(s); return; }
+    gateShow();
+    // Gate will close itself — still proceed to show the tab behind it
+  }
+ 
+  document.querySelectorAll('.sec').forEach(s  => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+ 
+  const secEl = document.getElementById(tabId);
+  if (secEl) secEl.classList.add('active');
+ 
+  const idx = TABS.indexOf(tabId);
+  const btns = document.querySelectorAll('.nav-btn');
+  if (btns[idx]) btns[idx].classList.add('active');
+ 
+  // Tab-specific side effects
+  if (tabId === 'brain')    updateBrainContext();
+  if (tabId === 'session')  { renderTrades(); scanAndGate(); }
+  if (tabId === 'calendar') { kzUpdateStatus(); rfUpdate(); }
+ 
+  window.scrollTo(0, 0);
+}
+ 
+/* ============================================================
+   ▸ 11. MACRO TAB
+   ============================================================ */
+ 
+function showMacro(id, el) {
+  ['quarterly','monthly','seasonal'].forEach(x => {
+    const node = document.getElementById('macro-' + x);
+    if (node) node.style.display = x === id ? 'block' : 'none';
   });
-  document.querySelectorAll('#macro .tl-item').forEach((el,i)=>{
-    el.classList.toggle('active',['quarterly','monthly','seasonal'][i]===s);
-  });
+  document.querySelectorAll('#macro .tl-item').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
 }
-
-function saveQuarterly(){
-  D.q={
-    bias:getVal('q-bias'),phase:getVal('q-phase'),pos:getVal('q-pos'),
-    high:document.getElementById('q-high').value,
-    low:document.getElementById('q-low').value,
-    targets:document.getElementById('q-targets').value,
-    narrative:document.getElementById('q-narrative').value
+ 
+function saveQuarterly() {
+  D.q = {
+    bias:        getVal('q-bias'),
+    phase:       getVal('q-phase'),
+    pos:         getVal('q-pos'),
+    high:        v('q-high'),
+    low:         v('q-low'),
+    targets:     v('q-targets'),
+    intermarket: v('q-intermarket'),
+    narrative:   v('q-narrative'),
   };
-  save();alert('✓ Quarterly plan saved');
+  save(); toast('Quarterly saved ✓');
 }
-
-function saveMonthly(){
-  D.m={
-    bias:getVal('m-bias'),pos:getVal('m-pos'),draw:getVal('m-draw'),
-    open:document.getElementById('m-open').value,
-    high:document.getElementById('m-high').value,
-    low:document.getElementById('m-low').value,
-    levels:document.getElementById('m-levels').value,
-    narrative:document.getElementById('m-narrative').value,
-    longtargets:document.getElementById('m-longtargets').value
+ 
+function saveMonthly() {
+  D.m = {
+    bias:        getVal('m-bias'),
+    pos:         getVal('m-pos'),
+    draw:        getVal('m-draw'),
+    open:        v('m-open'),
+    high:        v('m-high'),
+    low:         v('m-low'),
+    levels:      v('m-levels'),
+    narrative:   v('m-narrative'),
+    longtargets: v('m-longtargets'),
   };
-  save();alert('✓ Monthly plan saved');
+  save(); toast('Monthly saved ✓');
 }
-
-function saveSeasonalNotes(){
-  D.seasonal.notes=document.getElementById('seasonal-notes').value;
-  save();alert('✓ Seasonal notes saved');
+ 
+function saveSeasonalNotes() {
+  D.seasonal.notes = v('seasonal-notes');
+  save(); toast('Seasonal notes saved ✓');
 }
-
-// ─── WEEKLY ─────────────────────────────────────────────
-function saveWeekly(){
-  const entry={
-    date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
-    bias:getVal('w-bias'),str:getVal('w-str'),pos:getVal('w-pos'),draw:getVal('w-draw'),
-    levels:document.getElementById('w-levels').value,
-    day:getVal('w-day'),pat:getVal('w-pat'),
-    narrative:document.getElementById('w-narrative').value,
-    dont:getMulti('w-dont')
+ 
+/* ============================================================
+   ▸ 12. WEEKLY TAB
+   ============================================================ */
+ 
+function saveWeekly() {
+  const entry = {
+    date:      new Date().toLocaleDateString('en-US',{ month:'short', day:'numeric' }),
+    bias:      getVal('w-bias'),
+    str:       getVal('w-str'),
+    pos:       getVal('w-pos'),
+    draw:      getVal('w-draw'),
+    levels:    v('w-levels'),
+    day:       getVal('w-day'),
+    pat:       getVal('w-pat'),
+    narrative: v('w-narrative'),
+    dont:      getMulti('w-dont'),
   };
-  D.w=entry;
+  D.w = entry;
   D.weeklyHistory.unshift(entry);
-  if(D.weeklyHistory.length>8)D.weeklyHistory.pop();
-  save();renderWeeklyHistory();alert('✓ Weekly plan saved');
+  if (D.weeklyHistory.length > 8) D.weeklyHistory.pop();
+  save(); renderWeeklyHistory(); toast('Weekly plan saved ✓');
 }
-
-function renderWeeklyHistory(){
-  const el=document.getElementById('weekly-history');
-  if(!D.weeklyHistory.length){el.innerHTML='<div class="empty">No weekly plans saved yet.</div>';return;}
-  el.innerHTML=D.weeklyHistory.map(w=>`
+ 
+function renderWeeklyHistory() {
+  const el = document.getElementById('weekly-history');
+  if (!el) return;
+  if (!D.weeklyHistory.length) {
+    el.innerHTML = '<div class="empty">No weekly plans saved yet.</div>';
+    return;
+  }
+  el.innerHTML = D.weeklyHistory.map(w => `
     <div class="entry-card">
       <div class="entry-head">
         <span style="font-size:11px;color:var(--text3)">${w.date||''}</span>
-        ${w.bias?`<span class="badge ${w.bias==='Bullish'?'bull':w.bias==='Bearish'?'bear':'ambi'}">${w.bias}</span>`:''}
-        ${w.draw?`<span style="font-size:11px;color:var(--text2)">${w.draw}</span>`:''}
+        ${w.bias ? `<span class="badge ${w.bias==='Bullish'?'bull':w.bias==='Bearish'?'bear':'ambi'}">${w.bias}</span>` : ''}
+        ${w.draw ? `<span style="font-size:11px;color:var(--text2)">${w.draw}</span>` : ''}
+        ${w.pat  ? `<span style="font-size:11px;color:var(--text3)">${w.pat}</span>` : ''}
       </div>
-      ${w.narrative?`<div class="entry-narrative">${w.narrative}</div>`:''}
-      ${w.dont&&w.dont.length?`<div style="font-size:11px;color:var(--text3)">Rules: ${w.dont.join(' · ')}</div>`:''}
+      ${w.narrative ? `<div class="entry-narrative">${w.narrative}</div>` : ''}
+      ${w.dont?.length ? `<div style="font-size:11px;color:var(--text3)">Rules: ${w.dont.join(' · ')}</div>` : ''}
     </div>`).join('');
 }
-
-// ─── SESSION ────────────────────────────────────────────
-function showSession(s){
-  ['plan','live','backtest','trades'].forEach(x=>{
-    document.getElementById('sess-'+x).style.display=x===s?'block':'none';
+ 
+/* ============================================================
+   ▸ 13. SESSION TAB
+   ============================================================ */
+ 
+function showSession(id, el) {
+  ['plan','live','backtest','trades'].forEach(x => {
+    const node = document.getElementById('sess-' + x);
+    if (node) node.style.display = x === id ? 'block' : 'none';
   });
-  document.querySelectorAll('#session .tl-item').forEach((el,i)=>{
-    el.classList.toggle('active',['plan','live','backtest','trades'][i]===s);
-  });
-  if(s==='trades')renderTrades();
+  document.querySelectorAll('#session .tl-item').forEach(e => e.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (id === 'trades') renderTrades();
+  if (id === 'live' || id === 'backtest') scanAndGate();
 }
-
-function saveDailyPlan(){
-  D.s={
-    day:getVal('s-day'),bias:getVal('s-bias'),draw:getVal('s-draw'),
-    sess:getVal('s-sess'),levels:document.getElementById('s-levels').value,
-    narrative:document.getElementById('s-narrative').value
+ 
+function saveDailyPlan() {
+  D.s = {
+    day:       getVal('s-day'),
+    bias:      getVal('s-bias'),
+    draw:      getVal('s-draw'),
+    sess:      getVal('s-sess'),
+    levels:    v('s-levels'),
+    narrative: v('s-narrative'),
   };
-  save();alert('✓ Daily plan saved');
+  save(); toast('Daily plan saved ✓');
 }
-
-// ─── LIVE TRADE ─────────────────────────────────────────
-async function logLiveTrade(){
-  const btn=document.getElementById('lt-btn');
-  const out=document.getElementById('lt-out');
-  const ai=document.getElementById('lt-ai');
-  const trigger=getMulti('lt-trigger');
-  const dir=getVal('lt-dir');
-  const res=getVal('lt-res');
-  const valid=getVal('lt-valid');
-  const r=parseFloat(document.getElementById('lt-r').value)||0;
-  const note=document.getElementById('lt-note').value;
-  btn.disabled=true;btn.textContent='Reviewing...';
-  out.style.display='block';ai.textContent='Reviewing your live trade...';
-  const ctx=buildContext();
-  const prompt=`LIVE TRADE — REAL MONEY
-Context: ${ctx}
-Direction: ${dir||'?'} | Result: ${res||'?'} | R: ${r} | Valid: ${valid||'?'}
-Entry triggers confirmed: ${trigger.join(', ')||'none'}
-Note: ${note||'none'}`;
-  try{
-    const text=await callAI(prompt,`You are an ICT/IPDA trading mentor reviewing a LIVE real-money trade just taken by a developing trader. Be concise, direct, and constructive. Write 3-4 sentences covering: what they did right, the most important mistake if any, and one specific instruction for the next trade. This is real money — be honest but supportive. No markdown, no bullets.`);
-    ai.textContent=text;
-    const trade={id:Date.now(),type:'live',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),dir,res,r,valid,trigger,note,review:text};
-    D.trades.unshift(trade);save();
-  }catch(e){ai.textContent='Error. Trade logged without review.';}
-  btn.disabled=false;btn.textContent='Log live trade + AI review ↗';
+ 
+/* ============================================================
+   ▸ 14. LIVE TRADE LOGGER
+   ============================================================ */
+ 
+async function logLiveTrade() {
+  // 7/10 gate
+  if (!dePassed()) {
+    toast(`⛔ ${deScore()}/10 — Need ${CFG.minScore - deScore()} more confluence items`);
+    deOpen();
+    return;
+  }
+ 
+  const btn    = document.getElementById('lt-btn');
+  const out    = document.getElementById('lt-out');
+  const aiEl   = document.getElementById('lt-ai');
+  const dir    = getVal('lt-dir');
+  const res    = getVal('lt-res');
+  const valid  = getVal('lt-valid');
+  const r      = parseFloat(document.getElementById('lt-r')?.value) || 0;
+  const note   = v('lt-note');
+  const emo    = getMulti('lt-emo');
+  const triggers = getMulti('lt-trigger');
+  const score  = deScore();
+ 
+  // Strike logic
+  if (valid === 'invalid' || score < CFG.minScore) {
+    const s = strikeAdd(valid === 'invalid' ? 'Invalid setup logged (live)' : 'Sub-7/10 live trade', score);
+    if (strikeIsLockedOut(s)) { brutalShow(s); return; }
+  }
+ 
+  if (btn) { btn.disabled = true; btn.textContent = 'Reviewing...'; }
+  if (out) out.style.display = 'block';
+  if (aiEl) aiEl.textContent = 'Reading your live trade through the ICT lens...';
+ 
+  const prompt = buildTradePrompt('LIVE REAL-MONEY TRADE', { dir, res, valid, r, score, triggers, emo, note });
+ 
+  let text = '';
+  try {
+    text = await brainService(
+      prompt,
+      ICT_SYSTEM_PROMPT + '\n\nYou are reviewing a LIVE real-money trade just executed. Check for Judas Swing risk in hindsight. Identify the Draw on Liquidity that was targeted. Verify the AMD phase was correctly identified before entry. 3-4 sentences: what was right, the most critical issue, one specific instruction for the next trade. Direct. No markdown.'
+    );
+  } catch (e) {
+    text = fallbackReview({ dir, res, valid, triggers, score }) + '\n\n[AI: ' + e.message + ']';
+  }
+ 
+  if (aiEl) aiEl.textContent = text;
+  const trade = {
+    id: Date.now(), type: 'live',
+    date: new Date().toLocaleDateString('en-US',{ month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }),
+    dir, res, r, valid, triggers, emo, note, deScore: score, review: text,
+  };
+  D.trades.unshift(trade); save();
+ 
+  if (btn) { btn.disabled = false; btn.textContent = 'Log live trade + AI review ↗'; }
 }
-
-// ─── BACKTEST ────────────────────────────────────────────
-async function logBacktest(){
-  const btn=document.getElementById('bt-btn');
-  const out=document.getElementById('bt-out');
-  const ai=document.getElementById('bt-ai');
-  const day=getVal('bt-day');const dir=getVal('bt-dir');
-  const m15=getMulti('bt-m15');const m1=getMulti('bt-m1');
-  const res=getVal('bt-res');const valid=getVal('bt-valid');
-  const r=parseFloat(document.getElementById('bt-r').value)||0;
-  const note=document.getElementById('bt-note').value;
-  btn.disabled=true;btn.textContent='Generating...';
-  out.style.display='block';ai.textContent='Writing journal entry...';
-  const ctx=buildContext();
-  const prompt=`BACKTEST TRADE
-Context: ${ctx}
-Day: ${day||'?'} | Direction: ${dir||'?'} | Result: ${res||'?'} | R: ${r} | Valid: ${valid||'?'}
-15m confluences: ${m15.join(', ')||'none'}
-1m confluences: ${m1.join(', ')||'none'}
-What happened: ${note||'not noted'}`;
-  try{
-    const text=await callAI(prompt,`You are an ICT/IPDA trading mentor and journal writer. Write two sections:
-JOURNAL: 3-4 sentences in first person past tense. Describe the narrative, session structure, entry mechanics, and outcome using ICT terminology naturally.
-REVIEW: 3-4 sentences as the mentor. Evaluate what they did right, what was wrong, and give one specific actionable instruction for next time.
-Format: JOURNAL: [text]\n\nREVIEW: [text]\nNo markdown, no asterisks.`);
-    ai.textContent=text;
-    D.pendingBt={id:Date.now(),type:'backtest',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),day,dir,res,r,valid,m15,m1,note,aiText:text};
-  }catch(e){ai.textContent='Error. Try again.';}
-  btn.disabled=false;btn.textContent='Generate journal + review ↗';
+ 
+/* ============================================================
+   ▸ 15. BACKTEST LOGGER
+   ============================================================ */
+ 
+async function logBacktest() {
+  if (!dePassed()) {
+    toast(`⛔ ${deScore()}/10 — Need ${CFG.minScore - deScore()} more`);
+    deOpen();
+    return;
+  }
+ 
+  const btn   = document.getElementById('bt-btn');
+  const out   = document.getElementById('bt-out');
+  const aiEl  = document.getElementById('bt-ai');
+  const day   = getVal('bt-day');
+  const dir   = getVal('bt-dir');
+  const m15   = getMulti('bt-m15');
+  const m1    = getMulti('bt-m1');
+  const res   = getVal('bt-res');
+  const valid = getVal('bt-valid');
+  const r     = parseFloat(document.getElementById('bt-r')?.value) || 0;
+  const note  = v('bt-note');
+  const score = deScore();
+ 
+  if (valid === 'invalid') strikeAdd('Invalid backtest setup', score);
+ 
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
+  if (out) out.style.display = 'block';
+  if (aiEl) aiEl.textContent = 'Writing ICT journal entry...';
+ 
+  const prompt = buildTradePrompt('BACKTEST TRADE', { day, dir, res, valid, r, score,
+    m15summary: m15.join(', ') || 'none',
+    m1summary:  m1.join(', ')  || 'none',
+    note,
+  });
+ 
+  let text = '';
+  try {
+    text = await brainService(
+      prompt,
+      ICT_SYSTEM_PROMPT + '\n\nWrite two sections:\nJOURNAL: 3-4 sentences first person past tense. Describe the Draw on Liquidity targeted, whether a Judas Swing was present, the session narrative, entry mechanics, and result using ICT terminology naturally.\n\nREVIEW: 3-4 sentences as the mentor. What was right, the most critical mistake if any, and one specific actionable instruction. Be direct.\n\nFormat exactly:\nJOURNAL: [text]\n\nREVIEW: [text]\n\nNo markdown, no bullets, no asterisks.'
+    );
+  } catch (e) {
+    text = 'JOURNAL: Backtest logged — ' + dir + ' on ' + day + ', ' + res + ', ' + r + 'R. DE score: ' + score + '/10.\n\nREVIEW: ' + fallbackReview({ dir, res, valid, triggers: m1, score }) + '\n\n[AI: ' + e.message + ']';
+  }
+ 
+  if (aiEl) aiEl.textContent = text;
+  D.pendingBt = {
+    id: Date.now(), type: 'backtest',
+    date: new Date().toLocaleDateString('en-US',{ month:'short', day:'numeric' }),
+    day, dir, res, r, valid, m15, m1, note, deScore: score, aiText: text,
+  };
+ 
+  if (btn) { btn.disabled = false; btn.textContent = 'Generate journal + review ↗'; }
 }
-
-function saveBt(){
-  if(D.pendingBt){D.trades.unshift(D.pendingBt);D.pendingBt=null;save();discardBt();showSession('trades');}
+ 
+function saveBt() {
+  if (D.pendingBt) {
+    D.trades.unshift(D.pendingBt);
+    D.pendingBt = null;
+    save(); discardBt();
+    showSession('trades', null);
+    renderTrades();
+  }
 }
-function discardBt(){
-  document.getElementById('bt-out').style.display='none';
-  document.getElementById('bt-ai').textContent='';
-  D.pendingBt=null;
+ 
+function discardBt() {
+  const out = document.getElementById('bt-out');
+  const ai  = document.getElementById('bt-ai');
+  if (out) out.style.display = 'none';
+  if (ai)  ai.textContent = '';
+  D.pendingBt = null;
 }
-
-function renderTrades(filter='all'){
-  const el=document.getElementById('trades-list');
-  const sum=document.getElementById('trades-summary');
-  let trades=D.trades;
-  if(filter==='live')trades=trades.filter(t=>t.type==='live');
-  if(filter==='backtest')trades=trades.filter(t=>t.type==='backtest');
-  const valid=trades.filter(t=>t.valid==='valid');
-  const wins=valid.filter(t=>t.res==='win');
-  const totalR=valid.reduce((s,t)=>s+(t.res==='win'?t.r:t.res==='loss'?-Math.abs(t.r):0),0);
-  sum.textContent=`${trades.length} trades · Win: ${valid.length?Math.round(wins.length/valid.length*100)+'%':'—'} · R: ${totalR>=0?'+':''}${totalR.toFixed(1)}`;
-  if(!trades.length){el.innerHTML='<div class="empty">No trades logged yet.</div>';return;}
-  el.innerHTML=trades.map(t=>{
-    const parts=t.aiText?t.aiText.split(/REVIEW:/i):['',''];
-    const jPart=parts[0].replace(/JOURNAL:/i,'').trim();
-    const rPart=parts[1]?parts[1].trim():'';
-    return`<div class="entry-card">
+ 
+/* ============================================================
+   ▸ 16. TRADE HISTORY RENDER
+   ============================================================ */
+ 
+function filterTrades(filter = 'all') {
+  let trades = D.trades;
+  if (filter === 'live')     trades = trades.filter(t => t.type === 'live');
+  if (filter === 'backtest') trades = trades.filter(t => t.type === 'backtest');
+ 
+  const valid  = trades.filter(t => t.valid === 'valid');
+  const wins   = valid.filter(t => t.res === 'win');
+  const totalR = valid.reduce((s,t) =>
+    s + (t.res === 'win' ? t.r : t.res === 'loss' ? -Math.abs(t.r) : 0), 0);
+ 
+  const sum = document.getElementById('trades-summary');
+  if (sum) sum.textContent =
+    `${trades.length} trades · ${valid.length ? Math.round(wins.length/valid.length*100)+'% WR' : '—'} · ${totalR>=0?'+':''}${totalR.toFixed(1)}R`;
+ 
+  const el = document.getElementById('trades-list');
+  if (!el) return;
+  if (!trades.length) { el.innerHTML = '<div class="empty">No trades logged yet.</div>'; return; }
+ 
+  el.innerHTML = trades.map(t => {
+    const parts = t.aiText ? t.aiText.split(/REVIEW:/i) : ['', ''];
+    const j  = parts[0].replace(/JOURNAL:/i,'').trim();
+    const rv = parts[1] ? parts[1].trim() : '';
+    const scoreColor = t.deScore === undefined ? '' :
+      t.deScore >= CFG.minScore ? 'color:var(--green)' : 'color:var(--red)';
+ 
+    return `<div class="entry-card">
       <div class="entry-head">
-        <span class="live-tag ${t.type}">${t.type==='live'?'● LIVE':'◉ BT'}</span>
+        <span class="live-tag ${t.type === 'live' ? 'live' : 'back'}">${t.type === 'live' ? '● LIVE' : '◉ BT'}</span>
         <span style="font-size:11px;color:var(--text3)">${t.date||''}</span>
-        ${t.day?`<span style="font-size:11px;color:var(--text2)">${t.day.slice(0,3)}</span>`:''}
-        ${t.dir?`<span class="badge ${t.dir}">${t.dir.toUpperCase()}</span>`:''}
-        ${t.res?`<span class="badge ${t.res}">${t.res.toUpperCase()}</span>`:''}
-        ${t.r?`<span class="${t.r>0?'pnl-p':'pnl-n'}" style="font-size:12px;font-weight:600">${t.r>0?'+':''}${t.r}R</span>`:''}
-        ${t.valid?`<span class="badge ${t.valid}">${t.valid}</span>`:''}
+        ${t.day   ? `<span style="font-size:11px;color:var(--text2)">${t.day.slice(0,3)}</span>` : ''}
+        ${t.dir   ? `<span class="badge ${t.dir}">${t.dir.toUpperCase()}</span>` : ''}
+        ${t.res   ? `<span class="badge ${t.res}">${t.res.toUpperCase()}</span>` : ''}
+        ${t.r     ? `<span style="font-size:12px;font-weight:700" class="${t.r>0?'pnl-p':'pnl-n'}">${t.r>0?'+':''}${t.r}R</span>` : ''}
+        ${t.valid ? `<span class="badge ${t.valid}">${t.valid}</span>` : ''}
+        ${t.deScore !== undefined ? `<span style="font-size:10px;font-weight:700;${scoreColor}">${t.deScore}/10</span>` : ''}
       </div>
-      ${jPart?`<div class="entry-narrative">${jPart}</div>`:''}
-      ${t.note&&!jPart?`<div class="entry-narrative">${t.note}</div>`:''}
-      ${rPart?`<div class="entry-review">MENTOR: ${rPart}</div>`:t.review?`<div class="entry-review">MENTOR: ${t.review}</div>`:''}
+      ${j     ? `<div class="entry-narrative">${j}</div>` : ''}
+      ${!j && t.note   ? `<div class="entry-narrative">${t.note}</div>` : ''}
+      ${!j && t.review ? `<div class="entry-review">MENTOR: ${t.review}</div>` : ''}
+      ${rv ? `<div class="entry-review">MENTOR: ${rv}</div>` : ''}
     </div>`;
   }).join('');
 }
-
-// ─── CALENDAR ────────────────────────────────────────────
-function addEvent(){
-  const ev={
-    id:Date.now(),
-    date:document.getElementById('ev-date').value,
-    time:document.getElementById('ev-time').value,
-    name:document.getElementById('ev-name').value,
-    impact:getVal('ev-impact'),
-    note:document.getElementById('ev-note').value
-  };
-  if(!ev.name)return;
-  D.events.unshift(ev);save();renderEvents();
-  document.getElementById('ev-date').value='';
-  document.getElementById('ev-time').value='';
-  document.getElementById('ev-name').value='';
-  document.getElementById('ev-note').value='';
+ 
+function renderTrades() { filterTrades('all'); }
+ 
+/* ============================================================
+   ▸ 17. BRAIN TAB — context builder + runBrain
+   ============================================================ */
+ 
+function buildContext() {
+  const q = D.q, m = D.m, w = D.w, s = D.s;
+  return [
+    `QUARTERLY: bias=${q.bias||'?'}, phase=${q.phase||'?'}, position=${q.pos||'?'}`,
+    `  targets=${q.targets||'not set'}, intermarket=${q.intermarket||'not set'}`,
+    `  narrative=${q.narrative||'not written'}`,
+    `MONTHLY: bias=${m.bias||'?'}, position=${m.pos||'?'}, draw=${m.draw||'?'}`,
+    `  levels=${m.levels||'not set'}, longtargets=${m.longtargets||'not set'}`,
+    `  narrative=${m.narrative||'not written'}`,
+    `WEEKLY: bias=${w.bias||'?'}, structure=${w.str||'?'}, position=${w.pos||'?'}`,
+    `  draw=${w.draw||'?'}, pattern=${w.pat||'?'}`,
+    `  narrative=${w.narrative||'not written'}`,
+    `  rules=${(w.dont||[]).join(' / ')||'none set'}`,
+    `TODAY: day=${s.day||'?'}, bias=${s.bias||'?'}, draw=${s.draw||'?'}`,
+    `  session=${s.sess||'?'}, prediction=${s.narrative||'not written'}`,
+    `DECISION ENGINE: last score=${deScore()}/10, passed=${dePassed()}`,
+  ].join('\n');
 }
-
-function renderEvents(){
-  const el=document.getElementById('events-list');
-  if(!D.events.length){el.innerHTML='<div class="empty">No events added.</div>';return;}
-  el.innerHTML='<div class="card">'+D.events.map(e=>`
+ 
+function updateBrainContext() {
+  const q = D.q, m = D.m, w = D.w;
+  const line = document.getElementById('brain-context-line');
+  const parts = [];
+  if (q.bias) parts.push('Q: ' + q.bias);
+  if (m.bias) parts.push('Monthly: ' + m.bias);
+  if (w.bias) parts.push('Weekly: ' + w.bias);
+  if (w.draw) parts.push('Draw: ' + w.draw);
+  if (line) line.textContent = parts.length ? parts.join(' · ') : 'Add macro + weekly data first';
+ 
+  const pills = document.getElementById('context-pills');
+  if (pills) {
+    const items = [
+      { label:'Quarterly', val:q.bias, detail:[q.phase,q.pos].filter(Boolean).join(' · ') },
+      { label:'Monthly',   val:m.bias, detail:[m.pos,m.draw].filter(Boolean).join(' · ') },
+      { label:'Weekly',    val:w.bias, detail:[w.pos,w.draw,w.pat].filter(Boolean).join(' · ') },
+      { label:'Today',     val:D.s.bias, detail:[D.s.day,D.s.draw].filter(Boolean).join(' · ') },
+    ];
+    pills.innerHTML = items.map(item => {
+      const dc = item.val==='Bullish'?'green':item.val==='Bearish'?'red':item.val?'orange':'grey';
+      const bc = item.val==='Bullish'?'bull':item.val==='Bearish'?'bear':item.val?'ambi':'';
+      return `<div class="status-bar">
+        <div class="status-dot ${dc}"></div>
+        <div style="flex:1">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">${item.label}</div>
+          <div style="margin-top:3px">
+            ${item.val ? `<span class="badge ${bc}" style="margin-right:6px">${item.val}</span>` : ''}
+            <span style="font-size:12px;color:var(--text2)">${item.detail||'Not set'}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+ 
+  // Metrics
+  const valid  = D.trades.filter(t => t.valid === 'valid');
+  const wins   = valid.filter(t => t.res === 'win');
+  const totalR = valid.reduce((s,t) => s + (t.res==='win'?t.r:t.res==='loss'?-Math.abs(t.r):0), 0);
+  const metricsEl = document.getElementById('brain-metrics');
+  if (metricsEl) {
+    metricsEl.innerHTML = `
+      <div class="metric"><div class="metric-val">${valid.length ? Math.round(wins.length/valid.length*100)+'%' : '—'}</div><div class="metric-lbl">Win rate (valid)</div></div>
+      <div class="metric"><div class="metric-val ${totalR>=0?'pnl-p':'pnl-n'}">${totalR>=0?'+':''}${totalR.toFixed(1)}R</div><div class="metric-lbl">Total R</div></div>
+      <div class="metric"><div class="metric-val">${D.trades.length}</div><div class="metric-lbl">Total trades</div></div>
+      <div class="metric"><div class="metric-val">${valid.length}</div><div class="metric-lbl">Valid setups</div></div>`;
+  }
+}
+ 
+function brainQuick(q) {
+  const inp = document.getElementById('brain-q');
+  if (inp) inp.value = q;
+  runBrain();
+}
+ 
+async function runBrain() {
+  const btn  = document.getElementById('brain-btn');
+  const wrap = document.getElementById('brain-out-wrap');
+  const out  = document.getElementById('brain-out');
+  const note = document.getElementById('brain-note');
+  const q    = document.getElementById('brain-q')?.value.trim();
+  if (!q) return;
+ 
+  if (btn)  { btn.disabled = true; btn.textContent = 'Thinking...'; }
+  if (wrap) wrap.style.display = 'block';
+  if (out)  out.textContent = 'Identifying Draw on Liquidity and scanning for Judas Swing risk...';
+  if (note) note.textContent = '';
+ 
+  const ctx    = buildContext();
+  const recent = D.trades.slice(0,6).map((t,i) =>
+    `${i+1}. ${t.type} ${t.day||'?'} ${t.dir||'?'} ${t.res||'?'} ${t.r||0}R valid:${t.valid||'?'} DE:${t.deScore??'?'}/10`
+  ).join('\n');
+ 
+  const fullPrompt = [
+    'TRADER\'S COMPLETE MARKET DATA:',
+    ctx,
+    '',
+    'RECENT TRADE LOG:',
+    recent || 'No trades logged yet',
+    '',
+    'QUESTION / REQUEST:',
+    q,
+  ].join('\n');
+ 
+  try {
+    const text = await brainService(fullPrompt, ICT_SYSTEM_PROMPT);
+    if (out) out.textContent = text;
+    if (note) note.textContent = 'Analysis grounded in ICT/IPDA knowledge base';
+  } catch (e) {
+    if (out) out.textContent =
+      'Error: ' + e.message +
+      '\n\nFix: Open Settings (⚙) → add your Anthropic API key from console.anthropic.com\n' +
+      'Or set EXPO_PUBLIC_ANTHROPIC_KEY in your .env.local file.';
+  }
+ 
+  if (btn) { btn.disabled = false; btn.textContent = 'Analyze ↗'; }
+}
+ 
+/* ============================================================
+   ▸ 18. CALENDAR + RED FOLDER PROTOCOL
+   ============================================================ */
+ 
+const KILLZONES = [
+  { name:'London Open',     start:'02:00', end:'05:00', color:'#42a5f5' },
+  { name:'NY AM Open',      start:'07:00', end:'10:00', color:'#4caf50' },
+  { name:'Silver Bullet 1', start:'10:00', end:'11:00', color:'#ffd700' },
+  { name:'NY PM',           start:'13:00', end:'15:00', color:'#ce93d8' },
+  { name:'Silver Bullet 2', start:'14:00', end:'15:00', color:'#ffd700' },
+];
+ 
+function getESTTime() {
+  try {
+    const s = new Date().toLocaleString('en-US', { hour:'2-digit', minute:'2-digit', hour12:false, timeZone:'America/New_York' });
+    return s.padStart(5,'0');
+  } catch { return '00:00'; }
+}
+ 
+function kzUpdateStatus() {
+  const el  = document.getElementById('kz-status');
+  if (!el) return;
+  const est = getESTTime();
+  for (const kz of KILLZONES) {
+    if (est >= kz.start && est <= kz.end) {
+      el.innerHTML = `<span style="color:${kz.color};font-weight:700">● ${kz.name} ACTIVE</span> — High probability window. Only enter with full 7/10 confluence.`;
+      return;
+    }
+  }
+  for (const kz of KILLZONES) {
+    if (kz.start > est) {
+      el.innerHTML = `<span style="color:var(--text3)">No killzone active.</span> Next: <b style="color:var(--text)">${kz.name}</b> at ${kz.start}am EST`;
+      return;
+    }
+  }
+  el.innerHTML = `<span style="color:var(--text3)">Session closed. Next: London Open 2:00am EST.</span>`;
+}
+ 
+/**
+ * rfUpdate()
+ * Scans manually entered High-impact events against current time.
+ * Amber header = within 30 min. Red header = within 5 min / active.
+ * Also disables log buttons during active red folder window.
+ */
+function rfUpdate() {
+  const banner = document.getElementById('rf-banner');
+  if (!banner) return;
+ 
+  const highImpact = D.events.filter(e => e.impact === 'High');
+  const now = new Date();
+  let triggered = false;
+ 
+  for (const ev of highImpact) {
+    if (!ev.date || !ev.time) continue;
+    try {
+      // Parse "May 2 8:30am" style
+      const evDate = new Date(ev.date + ' ' + ev.time.replace(/([0-9]):([0-9]{2})(am|pm)/i,
+        (_, h, m, ampm) => {
+          let hr = parseInt(h);
+          if (ampm.toLowerCase() === 'pm' && hr !== 12) hr += 12;
+          if (ampm.toLowerCase() === 'am' && hr === 12) hr = 0;
+          return hr + ':' + m;
+        }
+      ));
+      if (isNaN(evDate)) continue;
+ 
+      const diffMin = (evDate - now) / 60_000;
+      if (diffMin >= -5 && diffMin <= 30) {
+        const isActive = diffMin <= 5;
+        banner.className   = isActive ? 'red' : 'amber';
+        banner.textContent = isActive
+          ? `🔴 RED FOLDER ACTIVE — ${ev.name} — ICT: Do NOT trade. Wait 15-30min after release.`
+          : `⚠️ RED FOLDER IN ${Math.ceil(diffMin)}MIN — ${ev.name} — Close open positions. No new entries.`;
+        triggered = true;
+ 
+        // Disable execute buttons during active red folder
+        ['lt-btn','bt-btn'].forEach(id => {
+          const b = document.getElementById(id);
+          if (b) { b.disabled = true; b.title = 'Red Folder active — trading disabled'; }
+        });
+        break;
+      }
+    } catch (_) {}
+  }
+ 
+  if (!triggered) {
+    banner.className   = '';
+    banner.textContent = '';
+    // Re-run the normal 7/10 gate (re-enables if score permits)
+    scanAndGate();
+  }
+}
+ 
+function addEvent() {
+  const ev = {
+    id:     Date.now(),
+    date:   v('ev-date'),
+    time:   v('ev-time'),
+    name:   v('ev-name'),
+    impact: getVal('ev-impact'),
+    note:   v('ev-note'),
+  };
+  if (!ev.name) { toast('Enter an event name'); return; }
+  D.events.unshift(ev); save(); renderEvents();
+  ['ev-date','ev-time','ev-name','ev-note'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  toast('Event added ✓');
+}
+ 
+function renderEvents() {
+  const el = document.getElementById('events-list');
+  if (!el) return;
+  if (!D.events.length) { el.innerHTML = '<div class="empty">No events added.</div>'; return; }
+  const cols = { High:'var(--red)', Medium:'var(--orange)', Low:'var(--green)' };
+  el.innerHTML = '<div class="card">' + D.events.map(e => `
     <div class="cal-event">
-      <div class="cal-time">
-        <span class="cal-impact ${(e.impact||'').toLowerCase()}"></span>
-        ${e.impact||''} impact · ${e.date||''} ${e.time||''}
+      <div class="cal-time" style="color:${cols[e.impact]||'var(--text3)'}">
+        ● ${e.impact||''} · ${e.date||''} ${e.time||''}
       </div>
       <div class="cal-name">${e.name}</div>
-      ${e.note?`<div style="font-size:11px;color:var(--text3);margin-top:3px">${e.note}</div>`:''}
-    </div>`).join('')+'</div>';
+      ${e.note ? `<div style="font-size:11px;color:var(--text3);margin-top:4px;line-height:1.6">${e.note}</div>` : ''}
+    </div>`).join('') + '</div>';
+  rfUpdate();
 }
-
-// ─── BRAIN ───────────────────────────────────────────────
-function buildContext(){
-  const q=D.q,m=D.m,w=D.w,s=D.s;
-  return `QUARTERLY: bias=${q.bias||'?'}, phase=${q.phase||'?'}, position=${q.pos||'?'}, targets=${q.targets||'not set'}, narrative=${q.narrative||'not written'}
-MONTHLY: bias=${m.bias||'?'}, position=${m.pos||'?'}, draw=${m.draw||'?'}, levels=${m.levels||'not set'}, narrative=${m.narrative||'not written'}, long-term targets=${m.longtargets||'not set'}
-WEEKLY: bias=${w.bias||'?'}, structure=${w.str||'?'}, position=${w.pos||'?'}, draw=${w.draw||'?'}, pattern=${w.pat||'?'}, narrative=${w.narrative||'not written'}, rules=${(w.dont||[]).join('/')||'none set'}
-TODAY: day=${s.day||'?'}, bias=${s.bias||'?'}, draw=${s.draw||'?'}, session=${s.sess||'?'}, narrative=${s.narrative||'not written'}`;
+ 
+/* ============================================================
+   ▸ 19. SETTINGS MODAL
+   ============================================================ */
+ 
+function openSettings() {
+  const keyEl = document.getElementById('settings-key');
+  const epEl  = document.getElementById('settings-endpoint');
+  const stEl  = document.getElementById('settings-strikes');
+  if (keyEl) keyEl.value = CFG.apiKey;
+  if (epEl)  epEl.value  = CFG.endpoint;
+  if (stEl)  stEl.textContent = strikeLoad().count;
+  document.getElementById('settings-modal')?.classList.add('active');
 }
-
-function updateBrainContext(){
-  const q=D.q,m=D.m,w=D.w;
-  const line=document.getElementById('brain-context-line');
-  const parts=[];
-  if(q.bias)parts.push(`Q: ${q.bias}`);
-  if(m.bias)parts.push(`Monthly: ${m.bias}`);
-  if(w.bias)parts.push(`Weekly: ${w.bias}`);
-  if(w.draw)parts.push(`Draw: ${w.draw}`);
-  line.textContent=parts.length?parts.join(' · '):'Add macro + weekly data first';
-
-  const pills=document.getElementById('context-pills');
-  const items=[
-    {label:'Quarterly',val:q.bias,phase:q.phase,pos:q.pos},
-    {label:'Monthly',val:m.bias,draw:m.draw,pos:m.pos},
-    {label:'Weekly',val:w.bias,draw:w.draw,pat:w.pat},
-    {label:'Today',val:D.s.bias,draw:D.s.draw}
-  ];
-  pills.innerHTML=items.map(item=>{
-    const cls=item.val==='Bullish'?'bull':item.val==='Bearish'?'bear':item.val?'ambi':'';
-    const details=[item.phase,item.pos,item.draw,item.pat].filter(Boolean).join(' · ');
-    return`<div class="status-bar">
-      <div class="status-dot ${item.val?'green':'grey'}"></div>
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:600;color:var(--text)">${item.label}</div>
-        ${item.val?`<span class="badge ${cls}" style="margin-top:3px">${item.val}</span>`:''} ${details?`<span style="font-size:11px;color:var(--text2)">${details}</span>`:'<span style="font-size:11px;color:var(--text3)">Not set</span>'}
-      </div>
-    </div>`;
-  }).join('');
-
-  const valid=D.trades.filter(t=>t.valid==='valid');
-  const wins=valid.filter(t=>t.res==='win');
-  const totalR=valid.reduce((s,t)=>s+(t.res==='win'?t.r:t.res==='loss'?-Math.abs(t.r):0),0);
-  document.getElementById('brain-metrics').innerHTML=`
-    <div class="metric"><div class="metric-val">${valid.length?Math.round(wins.length/valid.length*100)+'%':'—'}</div><div class="metric-lbl">Win rate</div></div>
-    <div class="metric"><div class="metric-val ${totalR>=0?'pnl-p':'pnl-n'}">${totalR>=0?'+':''}${totalR.toFixed(1)}R</div><div class="metric-lbl">Total R</div></div>
-    <div class="metric"><div class="metric-val">${D.trades.length}</div><div class="metric-lbl">Total trades</div></div>
-    <div class="metric"><div class="metric-val">${D.trades.filter(t=>t.valid==='valid').length}</div><div class="metric-lbl">Valid taken</div></div>`;
+ 
+function closeSettings() {
+  document.getElementById('settings-modal')?.classList.remove('active');
 }
-
-function brainQuick(q){document.getElementById('brain-q').value=q;runBrain();}
-
-async function runBrain(){
-  const btn=document.getElementById('brain-btn');
-  const wrap=document.getElementById('brain-out-wrap');
-  const out=document.getElementById('brain-out');
-  const q=document.getElementById('brain-q').value.trim();
-  if(!q)return;
-  btn.disabled=true;btn.textContent='Thinking...';
-  wrap.style.display='block';out.textContent='Analyzing all your data...';
-  const ctx=buildContext();
-  const recentTrades=D.trades.slice(0,8).map((t,i)=>`${i+1}. ${t.type} ${t.day||'?'} ${t.dir||'?'} ${t.res||'?'} ${t.r||0}R ${t.valid||'?'}`).join('\n');
-  const fullPrompt=`TRADER'S MARKET DATA:\n${ctx}\n\nRECENT TRADES:\n${recentTrades||'No trades logged yet'}\n\nTRADER'S QUESTION:\n${q}`;
-  try{
-    const text=await callAI(fullPrompt,`You are an ICT/IPDA trading mentor acting as the trader's analytical brain. You have access to their complete market context including quarterly, monthly, weekly, and daily data plus their trade history.
-
-Your role is NOT to react — it is to ANALYZE. You think deeper than the surface. You:
-1. Synthesize multiple timeframes and flag conflicts or alignments
-2. Reference specific ICT concepts by name (AMD model, Judas swing, dealing range, IPDA draw, killzones, etc.)
-3. Give specific, actionable insights based on their actual data — not generic advice
-4. Point out what they might be missing or not considering
-5. If timeframes conflict, say so explicitly and explain which one dominates
-6. Think about time — what day of the week, what session, what quarterly phase
-7. Be direct and honest — if the setup is weak, say so
-
-Write in a clear, mentor voice. 4-6 sentences unless the question requires more depth. No markdown formatting, no bullet points, no asterisks. Write fluidly as a mentor speaking to their student.`);
-    out.textContent=text;
-  }catch(e){out.textContent='Error connecting to AI. Check your internet connection and try again.';}
-  btn.disabled=false;btn.textContent='Analyze ↗';
+ 
+function saveSettings() {
+  const k  = document.getElementById('settings-key')?.value.trim();
+  const ep = document.getElementById('settings-endpoint')?.value.trim();
+  if (k)  localStorage.setItem('ipda_api_key',  k);
+  if (ep) { localStorage.setItem('ipda_endpoint', ep); BRAIN_CONFIG.endpoint = ep; }
+  closeSettings();
+  toast('Settings saved ✓');
 }
-
-// ─── API CALL ────────────────────────────────────────────
-async function callAI(userMsg,systemMsg){
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      model:'claude-sonnet-4-20250514',
-      max_tokens:800,
-      system:systemMsg,
-      messages:[{role:'user',content:userMsg}]
-    })
+ 
+/* ============================================================
+   ▸ 20. HELPERS
+   ============================================================ */
+ 
+/** Get value of a text/textarea input by id */
+function v(id) {
+  return document.getElementById(id)?.value || '';
+}
+ 
+/** Build structured prompt for trade review */
+function buildTradePrompt(type, fields) {
+  const ctx = buildContext();
+  return [
+    type,
+    '---',
+    'Market context:',
+    ctx,
+    '---',
+    `Direction: ${fields.dir||'?'} | Result: ${fields.res||'?'} | R: ${fields.r||0}`,
+    `Valid: ${fields.valid||'?'} | Decision Engine: ${fields.score??'?'}/10`,
+    fields.triggers ? `Entry triggers: ${fields.triggers.join(', ')||'none'}` : '',
+    fields.emo      ? `Emotional state: ${fields.emo.join(', ')||'not noted'}` : '',
+    fields.m15summary ? `15m confluences: ${fields.m15summary}` : '',
+    fields.m1summary  ? `1m confluences:  ${fields.m1summary}` : '',
+    fields.note ? `Note: ${fields.note}` : '',
+    fields.day  ? `Day: ${fields.day}` : '',
+  ].filter(Boolean).join('\n');
+}
+ 
+/**
+ * fallbackReview(fields)
+ * Offline coaching — used when the API is unavailable.
+ * Based on pure ICT logic, no AI needed.
+ */
+function fallbackReview({ dir, res, valid, triggers, score }) {
+  if (score < CFG.minScore)
+    return `Decision Engine score was ${score}/10 — below the 7/10 institutional minimum. This is retail probability territory. Identify the missing confluence items and drill them before the next session.`;
+  if (valid === 'invalid')
+    return 'This was an invalid setup. The 10-item engine exists specifically to prevent this. No exceptions, regardless of how convinced you are. Next trade: complete all 10 items before touching the execute button.';
+  if (triggers?.includes('Entered early'))
+    return 'You entered before 1m CHoCH confirmed. This is the single most common fixable mistake in ICT execution. The entry only exists after the CHoCH — every candle before it is premature. Next trade: do not click until the 1m structure flips.';
+  if (triggers?.includes('Chased'))
+    return 'You chased the displacement candle. The displacement is not your entry — the retracement into the FVG is. If there is no retracement, there is no trade. Wait for the algorithm to return to the imbalance it created.';
+  if (res === 'win' && valid === 'valid')
+    return 'Clean, valid execution. DOL identified, manipulation confirmed, entry triggered at the correct confluence zone. This is the repeatable standard. Log what you did well — not just what went wrong.';
+  if (res === 'loss' && valid === 'valid')
+    return 'Valid setup, honest loss. This is part of any probabilistic model. A valid loss means the algorithm had a different target or the HTF Draw on Liquidity was misidentified — not that you executed poorly. Review the DOL read on the highest timeframe.';
+  return 'Trade logged. Compare your pre-session prediction against what actually happened. The gap between those two is where your edge develops.';
+}
+ 
+/** Toast notification */
+function toast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', bottom:'80px', left:'50%', transform:'translateX(-50%)',
+    background:'#222', color:'#f0f0f0', padding:'10px 18px',
+    borderRadius:'20px', fontSize:'13px', fontWeight:'700',
+    zIndex:'9999', whiteSpace:'nowrap', boxShadow:'0 4px 20px rgba(0,0,0,.5)',
+    border:'.5px solid #333', transition:'opacity .3s',
+    pointerEvents:'none',
   });
-  const data=await res.json();
-  if(data.error)throw new Error(data.error.message);
-  return data.content.map(b=>b.text||'').join('');
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2400);
 }
-
-// ─── INIT ────────────────────────────────────────────────
-function init(){
-  load();
-  // Set labels
-  const now=new Date();
-  const q=Math.ceil((now.getMonth()+1)/3);
-  document.getElementById('q-label').textContent=q+' '+now.getFullYear();
-  document.getElementById('m-label').textContent=now.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);
-  const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+4);
-  document.getElementById('week-label-header').textContent='Week of '+weekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+weekEnd.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  // Restore saved values
-  if(D.q.high)document.getElementById('q-high').value=D.q.high;
-  if(D.q.low)document.getElementById('q-low').value=D.q.low;
-  if(D.q.targets)document.getElementById('q-targets').value=D.q.targets;
-  if(D.q.narrative)document.getElementById('q-narrative').value=D.q.narrative;
-  if(D.m.open)document.getElementById('m-open').value=D.m.open;
-  if(D.m.high)document.getElementById('m-high').value=D.m.high;
-  if(D.m.low)document.getElementById('m-low').value=D.m.low;
-  if(D.m.levels)document.getElementById('m-levels').value=D.m.levels;
-  if(D.m.narrative)document.getElementById('m-narrative').value=D.m.narrative;
-  if(D.m.longtargets)document.getElementById('m-longtargets').value=D.m.longtargets;
-  if(D.w.levels)document.getElementById('w-levels').value=D.w.levels;
-  if(D.w.narrative)document.getElementById('w-narrative').value=D.w.narrative;
-  if(D.seasonal.notes)document.getElementById('seasonal-notes').value=D.seasonal.notes;
-  // Render
+ 
+/* ============================================================
+   ▸ 21. SETUP SCREEN
+   ============================================================ */
+ 
+function completeSetup() {
+  const k = document.getElementById('setup-key')?.value.trim();
+  if (k) localStorage.setItem('ipda_api_key', k);
+  localStorage.setItem('ipda_setup_done', '1');
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('nav').style.display = 'flex';
+  initApp();
+}
+ 
+/* ============================================================
+   ▸ 22. INIT
+   ============================================================ */
+ 
+function initApp() {
+  const now = new Date();
+ 
+  // Date labels
+  const q = Math.ceil((now.getMonth() + 1) / 3);
+  const qLabel = document.getElementById('q-label');
+  if (qLabel) qLabel.textContent = q + ' ' + now.getFullYear();
+ 
+  const mLabel = document.getElementById('m-label');
+  if (mLabel) mLabel.textContent = now.toLocaleDateString('en-US',{ month:'long', year:'numeric' });
+ 
+  const ws = new Date(now);
+  ws.setDate(now.getDate() - ((now.getDay() || 7) - 1));
+  const we = new Date(ws);
+  we.setDate(ws.getDate() + 4);
+  const wkHeader = document.getElementById('week-label-header');
+  if (wkHeader) wkHeader.textContent = 'Week of ' +
+    ws.toLocaleDateString('en-US',{ month:'short', day:'numeric' }) + ' – ' +
+    we.toLocaleDateString('en-US',{ month:'short', day:'numeric' });
+ 
+  // Restore saved text values
+  const fields = {
+    'q-high':        D.q.high,
+    'q-low':         D.q.low,
+    'q-targets':     D.q.targets,
+    'q-intermarket': D.q.intermarket,
+    'q-narrative':   D.q.narrative,
+    'm-open':        D.m.open,
+    'm-high':        D.m.high,
+    'm-low':         D.m.low,
+    'm-levels':      D.m.levels,
+    'm-narrative':   D.m.narrative,
+    'm-longtargets': D.m.longtargets,
+    'w-levels':      D.w.levels,
+    'w-narrative':   D.w.narrative,
+    'seasonal-notes':D.seasonal.notes,
+    's-levels':      D.s.levels,
+    's-narrative':   D.s.narrative,
+  };
+  Object.entries(fields).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el && val) el.value = val;
+  });
+ 
+  // Render all lists
   renderWeeklyHistory();
   renderEvents();
   updateBrainContext();
+  strikeUpdateUI();
+  kzUpdateStatus();
+  rfUpdate();
+  scanAndGate();
+ 
+  // Auto-poll every 60s for red folder + killzone
+  setInterval(() => { rfUpdate(); kzUpdateStatus(); }, 60_000);
 }
-
-init();
+ 
+/* ── BOOT ── */
+load();
+if (localStorage.getItem('ipda_setup_done')) {
+  const ss = document.getElementById('setup-screen');
+  const ap = document.getElementById('app');
+  const nv = document.getElementById('nav');
+  if (ss) ss.style.display = 'none';
+  if (ap) ap.style.display = 'block';
+  if (nv) nv.style.display = 'flex';
+  initApp();
+}
 </script>
 </body>
 </html>
