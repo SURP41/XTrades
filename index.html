@@ -22,27 +22,54 @@
   --nav-h:60px;--safe-bottom:env(safe-area-inset-bottom,0px);
   --radius:12px;--radius-sm:8px;
 }
+
+/* ── BRUTAL / STRIKE THEME OVERRIDES ── */
+body.brutal{
+  --bg:#0d0000;--bg1:#160000;--bg2:#1a0000;--bg3:#2a0000;
+  --border:#3d0000;--border2:#4d0000;
+  --text:#ffe0e0;--text2:#cc6666;--text3:#773333;
+  --blue:#ff1744;--blue-bg:#2d0000;--blue-border:#6d0000;
+}
+body.strike2{
+  --bg1:#111000;--border:#2a2800;
+  --blue:#ff9800;--blue-bg:#2a2000;--blue-border:#5a4a00;
+}
+
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;min-height:100vh;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .3s}
 #app{padding-bottom:calc(var(--nav-h) + var(--safe-bottom) + 8px)}
-/* BOTTOM NAV */
+
+/* ── RED FOLDER BANNER ── */
+#rf-banner{display:none;position:sticky;top:0;z-index:200;padding:10px 16px;font-size:12px;font-weight:700;letter-spacing:.04em;text-align:center}
+#rf-banner.amber{display:block;background:#7f4000;color:#ffcc44;border-bottom:.5px solid #cc7700}
+#rf-banner.red{display:block;background:#7f0000;color:#ff6666;border-bottom:.5px solid #cc0000;animation:rf-pulse 1.2s infinite}
+@keyframes rf-pulse{0%,100%{opacity:1}50%{opacity:.7}}
+
+/* ── BOTTOM NAV ── */
 #nav{position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-bottom));padding-bottom:var(--safe-bottom);background:var(--bg1);border-top:0.5px solid var(--border);display:flex;z-index:100}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:10px;font-weight:500;letter-spacing:.03em;padding:8px 0;transition:color .15s}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:10px;font-weight:500;letter-spacing:.03em;padding:8px 0;transition:color .15s;position:relative}
 .nav-btn.active{color:var(--blue)}
 .nav-icon{font-size:22px;line-height:1}
-/* SECTIONS */
+
+/* ── STRIKE INDICATOR DOT ── */
+#strike-indicator{position:absolute;top:6px;right:12px;width:8px;height:8px;border-radius:50%;display:none}
+#strike-indicator.s1{display:block;background:var(--gold)}
+#strike-indicator.s2{display:block;background:var(--orange)}
+#strike-indicator.s3{display:block;background:var(--red);animation:rf-pulse 1s infinite}
+
+/* ── SECTIONS ── */
 .sec{display:none;padding:0 0 8px}
 .sec.active{display:block}
-/* HEADER */
 .page-header{padding:14px 16px 8px;position:sticky;top:0;background:var(--bg);z-index:50;border-bottom:.5px solid var(--border)}
 .page-title{font-size:17px;font-weight:600;color:var(--text)}
 .page-sub{font-size:12px;color:var(--text2);margin-top:2px}
-/* CARDS */
+
+/* ── CARDS ── */
 .card{background:var(--bg1);border:.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin:10px 14px}
 .card-title{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px}
-/* LABELS */
 .lbl{font-size:11px;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;font-weight:500}
-/* PILLS */
+
+/* ── PILLS ── */
 .pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2px}
 .pill{display:inline-flex;align-items:center;padding:6px 12px;border:.5px solid var(--border2);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s;user-select:none;font-weight:500}
 .pill.on{border-color:var(--text);color:var(--text);background:var(--bg2)}
@@ -50,124 +77,258 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .pill.bear{background:var(--red-bg);border-color:var(--red-border);color:var(--red)}
 .pill.ambi{background:var(--orange-bg);border-color:var(--orange-border);color:var(--orange)}
 .pill.info{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue)}
-/* INPUTS */
-textarea,input[type=text],input[type=number],select{
+
+/* ── INPUTS ── */
+textarea,input[type=text],input[type=number],input[type=password],select{
   width:100%;background:var(--bg2);border:.5px solid var(--border2);
   border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;
   color:var(--text);font-family:inherit;resize:none;line-height:1.6;
   -webkit-appearance:none;appearance:none
 }
 textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
-/* BUTTONS */
+
+/* ── BUTTONS ── */
 .btn{padding:10px 16px;background:none;border:.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;color:var(--text);cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s;letter-spacing:.02em}
 .btn.pri{background:var(--text);color:var(--bg);border-color:var(--text)}
 .btn.full{width:100%}
 .btn.sm{padding:7px 12px;font-size:12px}
 .btn:disabled{opacity:.4;cursor:not-allowed}
-/* BADGES */
+
+/* ── BADGES ── */
 .badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-.badge.bull{background:var(--green-bg);color:var(--green)}
-.badge.bear{background:var(--red-bg);color:var(--red)}
-.badge.ambi{background:var(--orange-bg);color:var(--orange)}
-.badge.win{background:var(--green-bg);color:var(--green)}
-.badge.loss{background:var(--red-bg);color:var(--red)}
-.badge.be{background:var(--orange-bg);color:var(--orange)}
-.badge.valid{background:var(--blue-bg);color:var(--blue)}
-.badge.invalid{background:var(--purple-bg);color:var(--purple)}
-/* AI BOX */
+.badge.bull,.badge.win,.badge.valid{background:var(--green-bg);color:var(--green)}
+.badge.bear,.badge.loss,.badge.invalid{background:var(--red-bg);color:var(--red)}
+.badge.ambi,.badge.be{background:var(--orange-bg);color:var(--orange)}
+.badge.info{background:var(--blue-bg);color:var(--blue)}
+.badge.long{background:var(--green-bg);color:var(--green)}
+.badge.short{background:var(--red-bg);color:var(--red)}
+
+/* ── AI BOX ── */
 .ai-box{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;line-height:1.75;white-space:pre-wrap;color:var(--text);min-height:60px}
-/* METRIC */
+
+/* ── METRICS ── */
 .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .metric{background:var(--bg2);border-radius:var(--radius-sm);padding:12px 14px}
 .metric-val{font-size:24px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
 .metric-lbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
-/* DIVIDER */
+
+/* ── MISC ── */
 .divider{height:.5px;background:var(--border);margin:12px 0}
-/* TIMELINE INDICATOR */
 .timeline{display:flex;gap:0;margin:10px 0;background:var(--bg2);border-radius:var(--radius-sm);overflow:hidden;border:.5px solid var(--border)}
 .tl-item{flex:1;padding:8px 6px;text-align:center;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;cursor:pointer;transition:all .15s}
 .tl-item.active{background:var(--blue-bg);color:var(--blue)}
-/* ACCORDION */
-.accord{border:.5px solid var(--border);border-radius:var(--radius);margin:10px 14px;overflow:hidden}
-.accord-head{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:var(--bg1)}
-.accord-title{font-size:14px;font-weight:600;color:var(--text)}
-.accord-sub{font-size:11px;color:var(--text2);margin-top:2px}
-.accord-arrow{font-size:16px;color:var(--text2);transition:transform .2s}
-.accord-body{display:none;padding:0 14px 14px;background:var(--bg1)}
-.accord.open .accord-arrow{transform:rotate(180deg)}
-.accord.open .accord-body{display:block}
-/* ENTRY CARD */
 .entry-card{background:var(--bg1);border:.5px solid var(--border);border-radius:var(--radius);padding:14px;margin:8px 14px}
 .entry-head{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
 .entry-narrative{font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:6px}
 .entry-review{font-size:12px;color:var(--text3);line-height:1.6;padding-top:8px;border-top:.5px solid var(--border)}
-/* LEVEL ITEM */
-.level-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:.5px solid var(--border)}
-.level-item:last-child{border-bottom:none}
-.level-name{font-size:13px;color:var(--text2)}
-.level-val{font-size:13px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
-/* CALENDAR */
 .cal-event{padding:10px 0;border-bottom:.5px solid var(--border)}
 .cal-event:last-child{border-bottom:none}
 .cal-time{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.05em}
 .cal-name{font-size:13px;color:var(--text);margin-top:2px;font-weight:500}
 .cal-impact{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px}
-.cal-impact.high{background:var(--red)}
-.cal-impact.med{background:var(--orange)}
-.cal-impact.low{background:var(--green)}
-/* STATUS BAR */
+.cal-impact.high{background:var(--red)}.cal-impact.med{background:var(--orange)}.cal-impact.low{background:var(--green)}
 .status-bar{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin:0 14px 10px;display:flex;align-items:center;gap:8px}
 .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.status-dot.green{background:var(--green)}
-.status-dot.red{background:var(--red)}
-.status-dot.orange{background:var(--orange)}
-.status-dot.grey{background:var(--text3)}
-/* LIVE TRADE */
+.status-dot.green{background:var(--green)}.status-dot.red{background:var(--red)}.status-dot.orange{background:var(--orange)}.status-dot.grey{background:var(--text3)}
 .live-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
 .live-tag.live{background:var(--red-bg);color:var(--red);border:.5px solid var(--red-border)}
 .live-tag.back{background:var(--blue-bg);color:var(--blue);border:.5px solid var(--blue-border)}
-/* RANGE BAR */
-.range-wrap{display:flex;gap:0;height:6px;border-radius:3px;overflow:hidden;margin:6px 0}
-.range-disc{flex:1;background:var(--green-bg)}
-.range-eq{width:3px;background:var(--border2)}
-.range-prem{flex:1;background:var(--red-bg)}
-/* EMPTY */
 .empty{text-align:center;padding:2.5rem 1rem;color:var(--text3);font-size:13px}
-/* GRID */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-/* SEASONAL */
 .seasonal-item{padding:10px 0;border-bottom:.5px solid var(--border)}
 .seasonal-item:last-child{border-bottom:none}
-/* SCROLLABLE */
-.scroll-list{max-height:40vh;overflow-y:auto}
-/* pnl */
 .pnl-p{color:var(--green)}.pnl-n{color:var(--red)}
-/* SECTION BREAK */
 .sec-break{padding:6px 16px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-top:6px}
-/* HIGHLIGHT BOX */
 .highlight{background:var(--blue-bg);border:.5px solid var(--blue-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;font-size:13px;color:var(--blue);line-height:1.6}
+
+/* ── MINDSET GATE & BRUTAL SCREEN ── */
+#mindset-gate,#brutal-screen{
+  display:none;position:fixed;inset:0;z-index:800;
+  background:var(--bg);overflow-y:auto;
+  padding:24px 20px 100px;
+}
+#mindset-gate.active{display:block}
+#brutal-screen{background:#0d0000;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:40px}
+#brutal-screen.active{display:flex}
+.hold-track{width:100%;height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:8px 0}
+.hold-fill{height:100%;width:0%;border-radius:3px;transition:width .05s linear}
+.hold-btn{width:100%;padding:16px;border-radius:var(--radius);border:1.5px solid var(--blue);font-size:13px;font-weight:800;cursor:pointer;background:transparent;color:var(--blue);text-transform:uppercase;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;font-family:inherit}
+
+/* ── DECISION ENGINE MODAL ── */
+#de-modal,#settings-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)}
+#de-modal.active,#settings-modal.active{display:block}
+#de-panel{position:absolute;bottom:0;left:0;right:0;max-height:90vh;overflow-y:auto;background:var(--bg);border-radius:20px 20px 0 0;padding:0 0 50px}
+#settings-panel{position:absolute;bottom:0;left:0;right:0;background:var(--bg1);border-radius:20px 20px 0 0;padding:20px 16px 50px;max-height:75vh;overflow-y:auto}
+
+/* ── SETUP SCREEN ── */
+#setup-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;overflow-y:auto;padding:40px 20px;display:flex;flex-direction:column;align-items:center}
 </style>
 </head>
 <body>
-<div id="app">
 
-<!-- ===== BRAIN TAB ===== -->
-<div id="brain" class="sec active">
-  <div class="page-header">
-    <div class="page-title">🧠 IPDA Brain</div>
-    <div class="page-sub" id="brain-context-line">Loading context...</div>
+<!-- ═══ SETUP SCREEN ═══ -->
+<div id="setup-screen">
+  <div style="font-size:56px;margin-bottom:12px;text-align:center">🧠</div>
+  <div style="font-size:22px;font-weight:800;text-align:center;letter-spacing:-.3px;margin-bottom:6px">IPDA Trading Brain</div>
+  <div style="font-size:13px;color:var(--text2);text-align:center;line-height:1.65;margin-bottom:28px;max-width:340px">ICT-powered institutional trading system.<br>Vision → Narrative → Entry → Review</div>
+
+  <div style="background:var(--bg1);border:.5px solid var(--border);border-radius:var(--radius);padding:16px;width:100%;max-width:400px;margin-bottom:10px">
+    <div style="font-size:10px;font-weight:800;color:var(--blue);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Step 1 — Install as phone app</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.65">
+      <b style="color:var(--text)">iPhone:</b> Open in Safari → Share (□↑) → <b style="color:var(--text)">Add to Home Screen</b><br><br>
+      <b style="color:var(--text)">Android:</b> Open in Chrome → Menu (⋮) → <b style="color:var(--text)">Add to Home Screen</b><br><br>
+      <b style="color:var(--text)">DuckDuckGo:</b> Share the file to Safari or Chrome first.
+    </div>
   </div>
 
-  <div class="card" id="brain-status-card">
-    <div class="card-title">Market context snapshot</div>
+  <div style="background:var(--bg1);border:.5px solid var(--border);border-radius:var(--radius);padding:16px;width:100%;max-width:400px;margin-bottom:20px">
+    <div style="font-size:10px;font-weight:800;color:var(--blue);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Step 2 — Add your API key (enables AI Brain)</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.65">Go to <b style="color:var(--text)">console.anthropic.com</b> → API Keys → create key → paste below.<br><br>Without a key, all journaling and planning works. AI analysis requires the key.</div>
+  </div>
+
+  <div style="width:100%;max-width:400px">
+    <div class="lbl" style="margin-top:0">Anthropic API key (optional)</div>
+    <input type="password" id="setup-key" placeholder="sk-ant-api03-..." style="margin-bottom:8px">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:16px;text-align:center">Stored only on this device. Never sent anywhere except Anthropic's API.</div>
+    <button class="btn pri full" onclick="completeSetup()" style="margin-top:0;font-size:15px;padding:14px">Launch IPDA Brain ↗</button>
+    <button class="btn full" onclick="completeSetup()" style="font-size:13px;margin-top:8px">Skip — use without AI</button>
+  </div>
+</div>
+
+<!-- ═══ MINDSET GATE OVERLAY ═══ -->
+<div id="mindset-gate">
+  <div style="text-align:center;margin-bottom:20px">
+    <span id="gate-badge" style="display:inline-block;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--blue-bg);color:var(--blue);border:.5px solid var(--blue-border)"></span>
+  </div>
+  <div style="border:.5px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;background:var(--bg1)">
+    <div style="font-size:28px;margin-bottom:8px">❝</div>
+    <div id="gate-quote-text" style="font-size:15px;font-weight:500;line-height:1.65;margin-bottom:12px;font-style:italic;color:var(--text)"></div>
+    <div id="gate-quote-attr" style="font-size:12px;font-weight:700;color:var(--text2)"></div>
+  </div>
+  <div style="border:.5px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:24px;background:var(--bg1)">
+    <div id="intentions-title" style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;color:var(--blue)"></div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.85">· I have identified the Draw on Liquidity</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.85">· I will not enter without 7/10 confluence</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.85">· I will wait for 1m CHoCH before executing</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.85">· I will stop at 1 loss and reassess the narrative</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+    <div id="hold-instruction" style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;font-weight:600">Hold to acknowledge</div>
+    <div class="hold-track"><div class="hold-fill" id="hold-fill"></div></div>
+    <button class="hold-btn" id="hold-btn"
+      ontouchstart="startHold()" ontouchend="endHold()"
+      onmousedown="startHold()" onmouseup="endHold()" onmouseleave="endHold()">
+      HOLD TO ACKNOWLEDGE &amp; ENTER
+    </button>
+  </div>
+</div>
+
+<!-- ═══ BRUTAL MODE SCREEN ═══ -->
+<div id="brutal-screen">
+  <div style="font-size:64px;margin-bottom:16px;animation:rf-pulse 1.2s infinite">⛔</div>
+  <div style="font-size:18px;font-weight:900;color:#ff1744;letter-spacing:.5px;margin-bottom:20px;text-align:center;line-height:1.4">TILT DETECTED.<br>LOCKOUT ACTIVE.</div>
+  <div style="background:#1a0000;border:.5px solid #6d0000;border-radius:var(--radius);padding:18px;margin-bottom:20px;width:100%;max-width:400px">
+    <div style="font-size:14px;color:#ffcccc;line-height:1.75;margin-bottom:10px">You have taken three consecutive deviations from your model. Your judgment is compromised. The algorithm will exploit your emotional state ruthlessly. The market will be here in 4 hours. You will not. Step away now.</div>
+    <div style="font-size:11px;color:#ff6666;font-weight:700">— IPDA Brain · Brutal Mode</div>
+  </div>
+  <div style="text-align:center;margin-bottom:24px">
+    <div style="font-size:10px;color:#ff6666;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">Lockout expires in</div>
+    <div id="brutal-countdown" style="font-size:52px;font-weight:700;color:#ff1744;font-variant-numeric:tabular-nums;letter-spacing:-.02em">04:00:00</div>
+    <div id="brutal-until" style="font-size:12px;color:#ff6666;margin-top:4px"></div>
+  </div>
+  <div style="background:#110000;border-radius:var(--radius-sm);padding:14px;width:100%;max-width:400px">
+    <div style="font-size:10px;font-weight:800;color:#ff4444;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">Use this time to:</div>
+    <div style="font-size:13px;color:#cc8888;line-height:1.9">· Review the exact moment your discipline broke</div>
+    <div style="font-size:13px;color:#cc8888;line-height:1.9">· Re-read your weekly narrative — was the DOL correct?</div>
+    <div style="font-size:13px;color:#cc8888;line-height:1.9">· Study the ICT concept you got wrong today</div>
+    <div style="font-size:13px;color:#cc8888;line-height:1.9">· Step away from all charts and price feeds</div>
+    <div style="font-size:13px;color:#cc8888;line-height:1.9">· Journal what you are feeling — name the emotion</div>
+  </div>
+</div>
+
+<!-- ═══ DECISION ENGINE MODAL ═══ -->
+<div id="de-modal">
+  <div id="de-panel">
+    <div style="padding:16px 20px 12px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--bg);border-bottom:.5px solid var(--border);z-index:10">
+      <div style="font-size:15px;font-weight:800;color:var(--text)">🎯 10-Item Decision Engine</div>
+      <button class="btn sm" onclick="deClose()">✕ Close</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;padding:16px">
+      <div id="de-score-circle" style="width:70px;height:70px;border-radius:35px;border:2px solid var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+        <div id="de-score-num" style="font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--blue)">0</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:-4px">/10</div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">Confluence Score</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px">Minimum 7/10 required to execute</div>
+        <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;position:relative">
+          <div id="de-progress" style="height:100%;width:0%;border-radius:2px;background:var(--blue);transition:width .3s"></div>
+          <div style="position:absolute;top:-3px;left:70%;width:2px;height:10px;background:var(--text3)"></div>
+        </div>
+      </div>
+    </div>
+    <div id="de-verdict" style="margin:0 16px 12px;padding:11px 14px;border-radius:var(--radius-sm);border:.5px solid var(--border);font-size:12px;font-weight:700;letter-spacing:.04em;background:var(--bg2);color:var(--text2)"></div>
+    <div id="de-items-container"></div>
+    <div id="de-retail-warn" style="display:none;text-align:center;font-size:11px;font-weight:800;color:var(--red);letter-spacing:.04em;margin:0 16px 12px;padding:8px;background:var(--red-bg);border-radius:var(--radius-sm)">
+      RETAIL LIQUIDITY DETECTED: UNFAVORABLE PROBABILITY
+    </div>
+    <button id="de-execute-btn" onclick="deExecute()" style="margin:0 16px;padding:15px;border-radius:var(--radius);font-size:14px;font-weight:800;letter-spacing:.04em;width:calc(100% - 32px);cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);text-transform:uppercase;font-family:inherit">
+      BLOCKED — 7 REQUIRED
+    </button>
+  </div>
+</div>
+
+<!-- ═══ SETTINGS MODAL ═══ -->
+<div id="settings-modal">
+  <div id="settings-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700;color:var(--text)">Settings</div>
+      <button class="btn sm" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="lbl" style="margin-top:0">Anthropic API Key</div>
+    <input type="password" id="settings-key" placeholder="sk-ant-api03-..." style="margin-bottom:6px">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Stored on-device only. Never committed to GitHub.</div>
+    <div class="lbl">API Endpoint</div>
+    <input type="text" id="settings-endpoint" placeholder="https://api.anthropic.com/v1/messages" style="margin-bottom:4px">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:16px">Swap to your backend proxy URL when going public. Zero other changes needed.</div>
+    <div class="lbl">Strike system</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+      <div style="font-size:13px;color:var(--text2)">Current strikes: <b id="settings-strikes" style="color:var(--text)">0</b>/3</div>
+      <button class="btn sm" onclick="strikeReset()">Reset strikes</button>
+    </div>
+    <button class="btn pri full" onclick="saveSettings()" style="margin-top:0">Save ↗</button>
+  </div>
+</div>
+
+<!-- ═══ RED FOLDER BANNER ═══ -->
+<div id="rf-banner"></div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN APP
+═══════════════════════════════════════════ -->
+<div id="app">
+
+<!-- ── BRAIN TAB ── -->
+<div id="brain" class="sec active">
+  <div class="page-header">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="page-title">🧠 IPDA Brain</div>
+        <div class="page-sub" id="brain-context-line">Loading context...</div>
+      </div>
+      <button class="btn sm" onclick="openSettings()">⚙</button>
+    </div>
+  </div>
+
+  <div style="padding:10px 14px 0">
     <div id="context-pills" style="display:flex;flex-direction:column;gap:6px"></div>
   </div>
 
   <div class="card">
     <div class="card-title">Ask the brain</div>
-    <textarea id="brain-q" rows="3" placeholder="What should I be looking for today?&#10;Is my narrative valid?&#10;Why did price reverse at that level?&#10;Should I be long or short right now?"></textarea>
+    <textarea id="brain-q" rows="3" placeholder="What should I be looking for today?&#10;Is my narrative valid?&#10;Identify the Draw on Liquidity&#10;Check for Judas Swing risk"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-      <button class="btn sm" onclick="brainQuick('Give me a full market briefing based on my current macro, monthly and weekly data')">📋 Full briefing</button>
+      <button class="btn sm" onclick="brainQuick('Give me a full market briefing based on my current macro, monthly and weekly data. Identify the Draw on Liquidity and check for Judas Swing risks.')">📋 Full briefing</button>
       <button class="btn sm" onclick="brainQuick('Is my current weekly bias aligned with the macro? Flag any conflicts.')">⚠️ Conflict check</button>
       <button class="btn sm" onclick="brainQuick('What ICT pattern should I be watching for this week based on my data?')">🎯 Pattern focus</button>
       <button class="btn sm" onclick="brainQuick('Review my recent trades and tell me what I need to fix most urgently.')">📊 Trade review</button>
@@ -178,6 +339,7 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
   <div id="brain-out-wrap" style="display:none;margin:0 14px">
     <div class="lbl" style="margin-bottom:6px">Brain analysis</div>
     <div class="ai-box" id="brain-out"></div>
+    <div id="brain-note" style="font-size:11px;color:var(--text3);margin-top:6px;text-align:right"></div>
   </div>
 
   <div class="card">
@@ -185,21 +347,22 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
     <div class="metrics" id="brain-metrics">
       <div class="metric"><div class="metric-val">—</div><div class="metric-lbl">Win rate</div></div>
       <div class="metric"><div class="metric-val">—</div><div class="metric-lbl">Total R</div></div>
+      <div class="metric"><div class="metric-val">—</div><div class="metric-lbl">Total trades</div></div>
+      <div class="metric"><div class="metric-val">—</div><div class="metric-lbl">Valid setups</div></div>
     </div>
   </div>
 </div>
 
-<!-- ===== MACRO TAB ===== -->
+<!-- ── MACRO TAB ── -->
 <div id="macro" class="sec">
   <div class="page-header">
     <div class="page-title">📅 Macro Analysis</div>
     <div class="page-sub">Quarterly → Monthly → Seasonal</div>
   </div>
-
   <div class="timeline" style="margin:10px 14px 0">
-    <div class="tl-item active" onclick="showMacro('quarterly')">Quarterly</div>
-    <div class="tl-item" onclick="showMacro('monthly')">Monthly</div>
-    <div class="tl-item" onclick="showMacro('seasonal')">Seasonal</div>
+    <div class="tl-item active" onclick="showMacro('quarterly',this)">Quarterly</div>
+    <div class="tl-item" onclick="showMacro('monthly',this)">Monthly</div>
+    <div class="tl-item" onclick="showMacro('seasonal',this)">Seasonal</div>
   </div>
 
   <!-- QUARTERLY -->
@@ -232,10 +395,12 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
         <input type="text" id="q-high" placeholder="Q high e.g. 22,000">
         <input type="text" id="q-low" placeholder="Q low e.g. 19,500">
       </div>
-      <div class="lbl" style="margin-top:10px">Major HTF targets this quarter</div>
-      <textarea id="q-targets" rows="2" placeholder="e.g. 60-day high at 21,800 — primary BSL target. Monthly FVG at 20,100-20,350..."></textarea>
+      <div class="lbl" style="margin-top:10px">IPDA 20/40/60 day targets</div>
+      <textarea id="q-targets" rows="2" placeholder="20d high: ___ | 40d high: ___ | 60d high: ___"></textarea>
+      <div class="lbl" style="margin-top:10px">Intermarket context (DXY / SMT)</div>
+      <textarea id="q-intermarket" rows="2" placeholder="DXY bias: ___ | Bond yields: ___ | SMT divergence: ___"></textarea>
       <div class="lbl" style="margin-top:10px">Quarterly narrative</div>
-      <textarea id="q-narrative" rows="4" placeholder="e.g. We are in a quarterly markup phase. Price made a clean BOS above the Q2 high suggesting the algorithm is delivering to the upside. Current position is in a discount after a 2-week retracement. Expecting the Q3 to close near the quarterly highs targeting 21,800..."></textarea>
+      <textarea id="q-narrative" rows="4" placeholder="Where are we in the quarterly range? What is the algorithm delivering toward? What is the seasonal tendency?"></textarea>
       <button class="btn pri full" onclick="saveQuarterly()" style="margin-top:12px">Save quarterly plan ↗</button>
     </div>
   </div>
@@ -258,7 +423,7 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
         <span class="pill" data-g="m-pos" data-v="Premium" onclick="selC(this,'bear')">Premium</span>
         <span class="pill" data-g="m-pos" data-v="Deep premium" onclick="selC(this,'bear')">Deep premium</span>
       </div>
-      <div class="lbl" style="margin-top:10px">Monthly open / high / low (so far)</div>
+      <div class="lbl" style="margin-top:10px">Monthly open / high / low</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
         <input type="text" id="m-open" placeholder="Open">
         <input type="text" id="m-high" placeholder="High">
@@ -274,11 +439,11 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
         <span class="pill" data-g="m-draw" data-v="Equal lows" onclick="sel(this)">Equal lows</span>
       </div>
       <div class="lbl" style="margin-top:10px">Key monthly levels</div>
-      <textarea id="m-levels" rows="3" placeholder="Previous month high: 21,400&#10;Previous month low: 20,800&#10;Monthly FVG: 21,050-21,120&#10;Monthly OB: 20,900-20,960"></textarea>
+      <textarea id="m-levels" rows="3" placeholder="PMH: ___ PML: ___&#10;Monthly FVG: ___-___&#10;Monthly OB: ___-___"></textarea>
       <div class="lbl" style="margin-top:10px">Monthly narrative</div>
-      <textarea id="m-narrative" rows="4" placeholder="Write your full monthly read — structure, manipulation expected, where price came from, where it's going, key events this month..."></textarea>
-      <div class="lbl" style="margin-top:10px">Long-term targets (don't change often)</div>
-      <textarea id="m-longtargets" rows="2" placeholder="e.g. 60-day target: 22,000 | 40-day target: 21,600 | 20-day target: 21,200"></textarea>
+      <textarea id="m-narrative" rows="4" placeholder="Full monthly read — structure, manipulation expected, where price came from, where it's going..."></textarea>
+      <div class="lbl" style="margin-top:10px">Long-term targets (set once)</div>
+      <textarea id="m-longtargets" rows="2" placeholder="60-day target: ___ | 40-day target: ___ | 20-day target: ___"></textarea>
       <button class="btn pri full" onclick="saveMonthly()" style="margin-top:12px">Save monthly plan ↗</button>
     </div>
   </div>
@@ -287,46 +452,44 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
   <div id="macro-seasonal" style="display:none">
     <div class="card">
       <div class="card-title">Seasonal tendencies</div>
-      <div class="highlight">ICT teaches that certain months and quarters have historical delivery tendencies. Use this to align your macro bias with seasonal patterns.</div>
-      <div id="seasonal-list">
-        <div class="seasonal-item">
-          <div style="font-size:12px;font-weight:600;color:var(--text)">Q1 (Jan–Mar)</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:3px">Typically bullish. January marks the yearly opening price. ICT teaches the yearly open is a key reference — price above it in Q1 = strong bullish seasonal tendency. Watch for expansion moves off the yearly open.</div>
-        </div>
-        <div class="seasonal-item">
-          <div style="font-size:12px;font-weight:600;color:var(--text)">Q2 (Apr–Jun)</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:3px">Typically a retracement or distribution quarter. Often the yearly high or significant high forms in Q2. ICT notes this is when the algorithm delivers a retracement to build orders for the next leg.</div>
-        </div>
-        <div class="seasonal-item">
-          <div style="font-size:12px;font-weight:600;color:var(--text)">Q3 (Jul–Sep)</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:3px">Mixed — can trend or consolidate. August and September historically have lower volatility. ICT uses this period for accumulation watching. Lower timeframe setups are cleaner in July.</div>
-        </div>
-        <div class="seasonal-item">
-          <div style="font-size:12px;font-weight:600;color:var(--text)">Q4 (Oct–Dec)</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:3px">Strong trending quarter. October often marks a significant low or high. November-December historically bullish for indices. ICT notes the algorithm delivers aggressively in Q4 to close the yearly range.</div>
-        </div>
-        <div class="seasonal-item">
-          <div style="font-size:12px;font-weight:600;color:var(--text)">Key monthly patterns</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:3px">First 3 trading days of month: algorithm sets the monthly opening range. Mid-month (10th–15th): manipulation of monthly range. Last week: distribution or reversal as monthly positions are squared.</div>
-        </div>
+      <div class="highlight">ICT teaches that certain months and quarters have historical delivery tendencies. Align your macro bias with seasonal patterns — fighting them is the most common macro mistake.</div>
+      <div class="seasonal-item">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">Q1 (Jan–Mar) — Bullish expansion</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px">January yearly open is the primary reference. Price above it all of Q1 = strong bullish seasonal tendency. Watch for expansion moves off the yearly open range.</div>
+      </div>
+      <div class="seasonal-item">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">Q2 (Apr–Jun) — Retracement/distribution</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px">Yearly high often forms in Q2. Algorithm retraces into discount to build orders. Lower your frequency. Focus on LTF precision.</div>
+      </div>
+      <div class="seasonal-item">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">Q3 (Jul–Sep) — Accumulation</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px">August and September have lower institutional participation. July is the cleanest month of Q3. Reduce size and frequency in August–September.</div>
+      </div>
+      <div class="seasonal-item">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">Q4 (Oct–Dec) — Strong trending</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px">October often marks a major low. November–December historically bullish for indices. Hold winners longer in Q4. High R setups more common.</div>
+      </div>
+      <div class="seasonal-item">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">Monthly delivery pattern</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px">First 3 days = opening range. Days 10–15 = manipulation. Week 3 = distribution. Last week = avoid new entries.</div>
       </div>
       <div class="divider"></div>
       <div class="lbl">Your seasonal notes for this period</div>
-      <textarea id="seasonal-notes" rows="3" placeholder="e.g. We are in Q3. Historically this is a consolidation phase. I will reduce trade frequency and only take the highest confluence setups. August tends to be choppy so I will focus on Tuesday/Thursday only..."></textarea>
+      <textarea id="seasonal-notes" rows="3" placeholder="e.g. We are in Q3. Historically choppy. I will reduce frequency and only take Tuesday/Thursday setups..."></textarea>
       <button class="btn pri full" onclick="saveSeasonalNotes()" style="margin-top:10px">Save notes ↗</button>
     </div>
   </div>
 </div>
 
-<!-- ===== WEEKLY TAB ===== -->
+<!-- ── WEEKLY TAB ── -->
 <div id="weekly" class="sec">
   <div class="page-header">
     <div class="page-title">📊 Weekly Plan</div>
-    <div class="page-sub" id="week-label-header">Set once per week, before Sunday/Monday</div>
+    <div class="page-sub" id="week-label-header">Set once before Monday. Don't change mid-week.</div>
   </div>
-
   <div class="card">
-    <div class="card-title">Weekly bias</div>
+    <div class="card-title">Weekly bias & structure</div>
+    <div class="lbl">Weekly bias</div>
     <div class="pills">
       <span class="pill" data-g="w-bias" data-v="Bullish" onclick="selC(this,'bull')">Bullish</span>
       <span class="pill" data-g="w-bias" data-v="Bearish" onclick="selC(this,'bear')">Bearish</span>
@@ -353,19 +516,6 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
       <span class="pill" data-g="w-draw" data-v="FVG above" onclick="sel(this)">FVG above</span>
       <span class="pill" data-g="w-draw" data-v="FVG below" onclick="sel(this)">FVG below</span>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Key weekly levels</div>
-    <textarea id="w-levels" rows="4" placeholder="Previous week high (PWH): ____&#10;Previous week low (PWL): ____&#10;Monday high: ____&#10;Monday low: ____&#10;Weekly FVG: ____-____&#10;Weekly OB: ____-____"></textarea>
-    <div class="lbl" style="margin-top:10px">Day profile expectation</div>
-    <div class="pills">
-      <span class="pill" data-g="w-day" data-v="Monday — range formation" onclick="sel(this)">Mon — range</span>
-      <span class="pill" data-g="w-day" data-v="Tuesday — weekly low/high forms" onclick="sel(this)">Tue — manipulation</span>
-      <span class="pill" data-g="w-day" data-v="Wednesday — continuation" onclick="sel(this)">Wed — continuation</span>
-      <span class="pill" data-g="w-day" data-v="Thursday — distribution" onclick="sel(this)">Thu — distribution</span>
-      <span class="pill" data-g="w-day" data-v="Friday — avoid" onclick="sel(this)">Fri — avoid</span>
-    </div>
     <div class="lbl" style="margin-top:10px">ICT pattern expected this week</div>
     <div class="pills">
       <span class="pill" data-g="w-pat" data-v="AMD" onclick="sel(this)">AMD model</span>
@@ -375,10 +525,20 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
       <span class="pill" data-g="w-pat" data-v="Stop hunt continuation" onclick="sel(this)">Stop hunt</span>
     </div>
   </div>
-
   <div class="card">
-    <div class="card-title">Weekly narrative</div>
-    <textarea id="w-narrative" rows="5" placeholder="Write your full weekly read. Where is price in the weekly range? What happened last week? What is the algorithm likely to do this week? Which session do you expect to manipulate? What is the target?"></textarea>
+    <div class="card-title">Key levels & narrative</div>
+    <div class="lbl" style="margin-top:0">Key weekly levels</div>
+    <textarea id="w-levels" rows="4" placeholder="PWH: ___  PWL: ___&#10;Monday high: ___  Monday low: ___&#10;Weekly FVG: ___-___&#10;Weekly OB: ___-___"></textarea>
+    <div class="lbl" style="margin-top:10px">Day profile expectation</div>
+    <div class="pills">
+      <span class="pill" data-g="w-day" data-v="Monday — range formation" onclick="sel(this)">Mon — range</span>
+      <span class="pill" data-g="w-day" data-v="Tuesday — weekly low/high forms" onclick="sel(this)">Tue — manipulation</span>
+      <span class="pill" data-g="w-day" data-v="Wednesday — continuation" onclick="sel(this)">Wed — continuation</span>
+      <span class="pill" data-g="w-day" data-v="Thursday — distribution" onclick="sel(this)">Thu — distribution</span>
+      <span class="pill" data-g="w-day" data-v="Friday — avoid" onclick="sel(this)">Fri — avoid</span>
+    </div>
+    <div class="lbl" style="margin-top:10px">Full weekly narrative</div>
+    <textarea id="w-narrative" rows="5" placeholder="Write your complete weekly read. Where is price in the weekly range? What is the IPDA draw? Which session will manipulate? What is your day-by-day prediction?"></textarea>
     <div class="lbl" style="margin-top:10px">What I will NOT do this week</div>
     <div class="pills">
       <span class="pill" data-g="w-dont" onclick="togP(this)" data-v="Trade Monday">No Monday</span>
@@ -390,24 +550,21 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
     </div>
     <button class="btn pri full" onclick="saveWeekly()" style="margin-top:12px">Save weekly plan ↗</button>
   </div>
-
-  <!-- Saved weekly review -->
   <div class="sec-break">Previous weeks</div>
   <div id="weekly-history"><div class="empty">No weekly plans saved yet.</div></div>
 </div>
 
-<!-- ===== SESSION TAB ===== -->
+<!-- ── SESSION TAB ── -->
 <div id="session" class="sec">
   <div class="page-header">
     <div class="page-title">⚡ Session</div>
     <div class="page-sub">Daily plan + live trade log</div>
   </div>
-
   <div class="timeline" style="margin:10px 14px 0">
-    <div class="tl-item active" onclick="showSession('plan')">Daily plan</div>
-    <div class="tl-item" onclick="showSession('live')">Live trade</div>
-    <div class="tl-item" onclick="showSession('backtest')">Backtest</div>
-    <div class="tl-item" onclick="showSession('trades')">History</div>
+    <div class="tl-item active" onclick="showSession('plan',this)">Daily plan</div>
+    <div class="tl-item" onclick="showSession('live',this)">Live trade</div>
+    <div class="tl-item" onclick="showSession('backtest',this)">Backtest</div>
+    <div class="tl-item" onclick="showSession('trades',this)">History</div>
   </div>
 
   <!-- DAILY PLAN -->
@@ -442,9 +599,9 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
         <span class="pill" data-g="s-sess" data-v="NY AM — distribution" onclick="sel(this)">NY AM</span>
       </div>
       <div class="lbl" style="margin-top:10px">Key levels today</div>
-      <textarea id="s-levels" rows="3" placeholder="PDH: ____&#10;PDL: ____&#10;Asian high: ____&#10;Asian low: ____&#10;FVG zone: ____-____"></textarea>
-      <div class="lbl" style="margin-top:10px">Today's narrative & prediction</div>
-      <textarea id="s-narrative" rows="3" placeholder="What do you expect London to do? Where is the stop hunt? Where does NY deliver? What is the FVG entry target?"></textarea>
+      <textarea id="s-levels" rows="3" placeholder="PDH: ___  PDL: ___&#10;Asian high: ___  Asian low: ___&#10;FVG zone: ___-___"></textarea>
+      <div class="lbl" style="margin-top:10px">Today's narrative &amp; prediction</div>
+      <textarea id="s-narrative" rows="3" placeholder="London sweeps ___. Displacement leaves FVG at ___-___. NY retraces into FVG. 1m CHoCH fires. Target ___. Time to target: ___"></textarea>
       <button class="btn pri full" onclick="saveDailyPlan()" style="margin-top:10px">Save daily plan ↗</button>
     </div>
   </div>
@@ -452,11 +609,15 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
   <!-- LIVE TRADE -->
   <div id="sess-live" style="display:none">
     <div class="card">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-        <span class="live-tag live">● LIVE</span>
-        <span style="font-size:12px;color:var(--text2)">Real money trade</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="live-tag live">● LIVE</span>
+          <span style="font-size:12px;color:var(--text2)">Real money trade</span>
+        </div>
+        <button class="btn sm" onclick="deOpen()" style="border-color:var(--gold);color:var(--gold)">🎯 7/10 Check</button>
       </div>
-      <div class="lbl">Direction</div>
+      <div id="de-score-display" style="display:none;background:var(--bg2);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;font-size:12px;font-weight:700"></div>
+      <div class="lbl" style="margin-top:0">Direction</div>
       <div class="pills">
         <span class="pill" data-g="lt-dir" data-v="long" onclick="selC(this,'bull')">Long</span>
         <span class="pill" data-g="lt-dir" data-v="short" onclick="selC(this,'bear')">Short</span>
@@ -469,6 +630,7 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
         <span class="pill" data-g="lt-trigger" onclick="togP(this)" data-v="1m stop hunt">1m stop hunt ✓</span>
         <span class="pill" data-g="lt-trigger" onclick="togP(this)" data-v="1m CHoCH">1m CHoCH ✓</span>
         <span class="pill" data-g="lt-trigger" onclick="togP(this)" data-v="Killzone timing">Killzone ✓</span>
+        <span class="pill" data-g="lt-trigger" onclick="togP(this)" data-v="AMD confirmed">AMD ✓</span>
       </div>
       <div class="lbl" style="margin-top:10px">Setup validity</div>
       <div class="pills">
@@ -485,6 +647,15 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
         </div>
         <input type="number" id="lt-r" placeholder="R e.g. 2.5" step="0.5" style="height:fit-content">
       </div>
+      <div class="lbl" style="margin-top:10px">Emotional state</div>
+      <div class="pills">
+        <span class="pill" data-g="lt-emo" onclick="togP(this)" data-v="Patient">Patient</span>
+        <span class="pill" data-g="lt-emo" onclick="togP(this)" data-v="Disciplined">Disciplined</span>
+        <span class="pill" data-g="lt-emo" onclick="togP(this)" data-v="Confident">Confident</span>
+        <span class="pill" data-g="lt-emo" onclick="togP(this)" data-v="FOMO">FOMO</span>
+        <span class="pill" data-g="lt-emo" onclick="togP(this)" data-v="Anxious">Anxious</span>
+        <span class="pill" data-g="lt-emo" onclick="togP(this)" data-v="Revenge trading">Revenge</span>
+      </div>
       <div class="lbl" style="margin-top:10px">Quick note</div>
       <textarea id="lt-note" rows="2" placeholder="What happened? What did you see?"></textarea>
       <button class="btn pri full" id="lt-btn" onclick="logLiveTrade()" style="margin-top:10px">Log live trade + AI review ↗</button>
@@ -498,10 +669,11 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
   <!-- BACKTEST -->
   <div id="sess-backtest" style="display:none">
     <div class="card">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <span class="live-tag back">◉ BACKTEST</span>
+        <button class="btn sm" onclick="deOpen()" style="border-color:var(--gold);color:var(--gold)">🎯 7/10 Check</button>
       </div>
-      <div class="lbl">Day & direction</div>
+      <div class="lbl" style="margin-top:0">Day &amp; direction</div>
       <div class="pills" style="flex-wrap:wrap">
         <span class="pill" data-g="bt-day" data-v="Monday" onclick="sel(this)">Mon</span>
         <span class="pill" data-g="bt-day" data-v="Tuesday" onclick="sel(this)">Tue</span>
@@ -521,6 +693,7 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
         <span class="pill" data-g="bt-m15" onclick="togP(this)" data-v="OTE zone">OTE zone</span>
         <span class="pill" data-g="bt-m15" onclick="togP(this)" data-v="Killzone">Killzone</span>
         <span class="pill" data-g="bt-m15" onclick="togP(this)" data-v="AMD visible">AMD</span>
+        <span class="pill" data-g="bt-m15" onclick="togP(this)" data-v="Judas swing visible">Judas swing</span>
       </div>
       <div class="lbl" style="margin-top:10px">1m entry</div>
       <div class="pills">
@@ -530,8 +703,9 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
         <span class="pill" data-g="bt-m1" onclick="togP(this)" data-v="Entered early">Entered early</span>
         <span class="pill" data-g="bt-m1" onclick="togP(this)" data-v="Chased">Chased</span>
         <span class="pill" data-g="bt-m1" onclick="togP(this)" data-v="Stop correct">Stop correct</span>
+        <span class="pill" data-g="bt-m1" onclick="togP(this)" data-v="Exited early">Exited early</span>
       </div>
-      <div class="lbl" style="margin-top:10px">Result & validity</div>
+      <div class="lbl" style="margin-top:10px">Result &amp; validity</div>
       <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
         <div class="pills">
           <span class="pill" data-g="bt-res" data-v="win" onclick="selC(this,'bull')">Win</span>
@@ -572,24 +746,31 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
   </div>
 </div>
 
-<!-- ===== CALENDAR TAB ===== -->
+<!-- ── CALENDAR TAB ── -->
 <div id="calendar" class="sec">
   <div class="page-header">
     <div class="page-title">📰 Economic Calendar</div>
-    <div class="page-sub">Key events + your custom entries</div>
+    <div class="page-sub">Killzone times + Red Folder guard</div>
+  </div>
+
+  <!-- Killzone live status -->
+  <div class="card" style="margin-top:10px">
+    <div class="card-title">Active killzone — right now</div>
+    <div id="kz-status" style="font-size:13px;color:var(--text2)">Checking session...</div>
+    <div class="divider"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;color:var(--text3)">
+      <div>🔵 <b style="color:var(--text2)">London open</b><br>2:00–5:00am EST</div>
+      <div>🟢 <b style="color:var(--text2)">NY AM open</b><br>7:00–10:00am EST</div>
+      <div>🟡 <b style="color:var(--text2)">Silver Bullet 1</b><br>10:00–11:00am EST</div>
+      <div>🟡 <b style="color:var(--text2)">Silver Bullet 2</b><br>2:00–3:00pm EST</div>
+    </div>
   </div>
 
   <div class="card">
     <div class="card-title">Add event</div>
     <div class="g2" style="margin-bottom:8px">
-      <div>
-        <div class="lbl">Date</div>
-        <input type="text" id="ev-date" placeholder="e.g. Apr 30">
-      </div>
-      <div>
-        <div class="lbl">Time (EST)</div>
-        <input type="text" id="ev-time" placeholder="e.g. 8:30am">
-      </div>
+      <div><div class="lbl">Date</div><input type="text" id="ev-date" placeholder="e.g. May 2"></div>
+      <div><div class="lbl">Time (EST)</div><input type="text" id="ev-time" placeholder="e.g. 8:30am"></div>
     </div>
     <div class="lbl">Event name</div>
     <input type="text" id="ev-name" placeholder="e.g. CPI, NFP, FOMC, GDP..." style="margin-bottom:8px">
@@ -599,1610 +780,593 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
       <span class="pill" data-g="ev-impact" data-v="Medium" onclick="selC(this,'ambi')">🟡 Medium</span>
       <span class="pill" data-g="ev-impact" data-v="Low" onclick="selC(this,'bull')">🟢 Low</span>
     </div>
-    <div class="lbl" style="margin-top:10px">Notes / expectation</div>
-    <textarea id="ev-note" rows="2" placeholder="e.g. Expect volatility. Avoid trading 15min before and 30min after. Watch for Judas swing at open then real direction..."></textarea>
+    <div class="lbl" style="margin-top:10px">Notes / how to trade it</div>
+    <textarea id="ev-note" rows="2" placeholder="e.g. Avoid 15min before. Watch for Judas swing at open then real direction forms..."></textarea>
     <button class="btn pri full" onclick="addEvent()" style="margin-top:10px">Add to calendar ↗</button>
   </div>
 
-  <div class="sec-break">Upcoming events</div>
+  <div class="sec-break">ICT key recurring events</div>
   <div class="card">
-    <div class="card-title">ICT key dates (recurring)</div>
-    <div class="cal-event">
-      <div class="cal-time"><span class="cal-impact high"></span>NFP — First Friday of month</div>
-      <div class="cal-name">Non-Farm Payrolls — 8:30am EST</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:3px">Avoid 30min before. Watch for Judas swing at open then true delivery direction forms after 9am.</div>
-    </div>
-    <div class="cal-event">
-      <div class="cal-time"><span class="cal-impact high"></span>FOMC — 8x per year</div>
-      <div class="cal-name">Federal Reserve rate decision — 2:00pm EST</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:3px">ICT: FOMC days often see manipulation before the announcement then explosive delivery after. Do not hold through announcement.</div>
-    </div>
-    <div class="cal-event">
-      <div class="cal-time"><span class="cal-impact high"></span>CPI — Monthly</div>
-      <div class="cal-name">Consumer Price Index — 8:30am EST</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:3px">High volatility. Wait for first 15 minutes to settle. Let price show its hand before entering.</div>
-    </div>
-    <div class="cal-event">
-      <div class="cal-time"><span class="cal-impact med"></span>Silver bullet windows — Daily</div>
-      <div class="cal-name">10:00–11:00am EST | 2:00–3:00pm EST</div>
-      <div style="font-size:11px;color:var(--text3);margin-top:3px">ICT's time-based entry model. FVG forms in these windows = high probability entry. Only trade FVGs that form inside the window.</div>
-    </div>
+    <div class="cal-event"><div class="cal-time"><span class="cal-impact high"></span>NFP — First Friday of month · 8:30am EST</div><div class="cal-name">Non-Farm Payrolls</div><div style="font-size:11px;color:var(--text3);margin-top:3px">ICT: Avoid 30min before. Watch for Judas Swing at 8:30am. True direction emerges after 9am. Do NOT trade the initial spike.</div></div>
+    <div class="cal-event"><div class="cal-time"><span class="cal-impact high"></span>FOMC — 8x per year · 2:00pm EST</div><div class="cal-name">Federal Reserve rate decision</div><div style="font-size:11px;color:var(--text3);margin-top:3px">ICT: Manipulation before the announcement, explosive delivery after. Never hold through it. Re-enter once market shows direction.</div></div>
+    <div class="cal-event"><div class="cal-time"><span class="cal-impact high"></span>CPI — Monthly · 8:30am EST</div><div class="cal-name">Consumer Price Index</div><div style="font-size:11px;color:var(--text3);margin-top:3px">ICT: Wait 15 minutes after release. Let price show direction. Widen stops or sit out entirely.</div></div>
+    <div class="cal-event"><div class="cal-time"><span class="cal-impact med"></span>Silver Bullet — Daily</div><div class="cal-name">10:00–11:00am EST | 2:00–3:00pm EST</div><div style="font-size:11px;color:var(--text3);margin-top:3px">ICT: FVG formed INSIDE these windows only = high probability entry. FVGs before the window do not qualify as Silver Bullet setups.</div></div>
   </div>
 
   <div class="sec-break">Your events</div>
-  <div id="events-list"><div class="empty">No events added. Add your economic calendar events above.</div></div>
+  <div id="events-list"><div class="empty">No events added yet.</div></div>
 </div>
+
+</div><!-- /app -->
 
 <!-- BOTTOM NAV -->
 <div id="nav">
-  <button class="nav-btn active" onclick="showTab('brain')">
-    <span class="nav-icon">🧠</span>Brain
-  </button>
-  <button class="nav-btn" onclick="showTab('macro')">
-    <span class="nav-icon">📅</span>Macro
-  </button>
-  <button class="nav-btn" onclick="showTab('weekly')">
-    <span class="nav-icon">📊</span>Weekly
-  </button>
-  <button class="nav-btn" onclick="showTab('session')">
+  <button class="nav-btn active" onclick="showTab('brain')"><span class="nav-icon">🧠</span>Brain</button>
+  <button class="nav-btn" onclick="showTab('macro')"><span class="nav-icon">📅</span>Macro</button>
+  <button class="nav-btn" onclick="showTab('weekly')"><span class="nav-icon">📊</span>Weekly</button>
+  <button class="nav-btn" onclick="showTab('session')" style="position:relative">
     <span class="nav-icon">⚡</span>Session
+    <span id="strike-indicator"></span>
   </button>
-  <button class="nav-btn" onclick="showTab('calendar')">
-    <span class="nav-icon">📰</span>Calendar
-  </button>
+  <button class="nav-btn" onclick="showTab('calendar')"><span class="nav-icon">📰</span>Calendar</button>
 </div>
 
-<script> 'use strict';
- 
-/* ============================================================
-   ▸ 1. CONFIGURATION & API SERVICE ABSTRACTION
-   Swap BRAIN_ENDPOINT to your backend proxy URL when
-   going public. Zero other changes required.
-   ============================================================ */
- 
+<script>
+'use strict';
+
+/* ── CONFIG ── */
 const CFG = {
-  // Reads from env if bundled (Expo/Vite), falls back to localStorage
   get apiKey() {
     return (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_ANTHROPIC_KEY)
-      || localStorage.getItem('ipda_api_key')
-      || '';
+      || localStorage.getItem('ipda_api_key') || '';
   },
   get endpoint() {
     return (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL)
       || localStorage.getItem('ipda_endpoint')
       || 'https://api.anthropic.com/v1/messages';
   },
-  model:        'claude-sonnet-4-20250514',
-  maxTokens:    950,
-  minScore:     7,   // 7/10 rule
+  model: 'claude-sonnet-4-20250514',
+  maxTokens: 950,
+  minScore: 7,
   lockoutHours: 4,
-  storageKey:   'ipda_brain_v3',
-  strikesKey:   'ipda_strikes_v2',
+  storageKey: 'ipda_brain_v3',
+  strikesKey: 'ipda_strikes_v2',
 };
- 
-/**
- * brainService(userMessage, systemMessage)
- * THE ONLY FUNCTION THAT TOUCHES THE API.
- * Swap CFG.endpoint → your proxy URL. Done.
- */
+
+/* ── API SERVICE ── */
 async function brainService(userMessage, systemMessage) {
   const isDirect = CFG.endpoint.includes('anthropic.com');
- 
-  if (isDirect && !CFG.apiKey) {
-    throw new Error(
-      'No API key set.\nOpen Settings (⚙) → paste your key from console.anthropic.com'
-    );
-  }
- 
+  if (isDirect && !CFG.apiKey) throw new Error('No API key set.\nOpen Settings (⚙) → paste your key from console.anthropic.com');
   const headers = { 'Content-Type': 'application/json' };
   if (isDirect) {
-    headers['x-api-key']                                    = CFG.apiKey;
-    headers['anthropic-version']                            = '2023-06-01';
-    headers['anthropic-dangerous-direct-browser-access']   = 'true';
+    headers['x-api-key'] = CFG.apiKey;
+    headers['anthropic-version'] = '2023-06-01';
+    headers['anthropic-dangerous-direct-browser-access'] = 'true';
   }
-  // Proxy mode: server authenticates — nothing sensitive leaves the client
- 
   const res = await fetch(CFG.endpoint, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model:      CFG.model,
-      max_tokens: CFG.maxTokens,
-      system:     systemMessage,
-      messages:   [{ role: 'user', content: userMessage }],
-    }),
+    method: 'POST', headers,
+    body: JSON.stringify({ model: CFG.model, max_tokens: CFG.maxTokens, system: systemMessage, messages: [{ role: 'user', content: userMessage }] }),
   });
- 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `HTTP ${res.status}`);
-  }
- 
+  if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err?.error?.message || `HTTP ${res.status}`); }
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
   return data.content.map(b => b.text || '').join('');
 }
- 
-/* ============================================================
-   ▸ 2. ICT KNOWLEDGE BASE — SYSTEM PROMPT
-   This is sent with every AI request.
-   Derived from ICT Mentorship core concepts.
-   ============================================================ */
- 
+
+/* ── ICT SYSTEM PROMPT ── */
 const ICT_SYSTEM_PROMPT = `You are the IPDA Trading Brain. You are an institutional ICT trading mentor with mastery of the following concepts. Apply them rigorously in every response.
- 
-IPDA ALGORITHM:
-Price is algorithmically delivered between liquidity pools. It originates from an imbalance and terminates at liquidity — or originates from liquidity and terminates at an imbalance. The algorithm looks back 20, 40, and 60 trading days to identify resting liquidity targets (BSL above equal highs, prior highs; SSL below equal lows, prior lows). ALWAYS identify the Draw on Liquidity (DOL) before evaluating anything. Everything flows from the DOL.
- 
-JUDAS SWING — YOUR PRIMARY FILTER:
-The Judas Swing is a manipulative move OPPOSITE to the true direction. It appears at session opens, especially London (2-5am EST). It breaks a key level aggressively, triggers stops, then immediately reverses with displacement in the true direction. ALWAYS ask: is this move the Judas or the real delivery? This is the single most common reason developing traders enter wrong. If price broke a level and immediately reversed with a strong displacement candle — that was the Judas. The real move has already begun in the opposite direction.
- 
-AMD MODEL:
-Accumulation → price ranges, builds orders on both sides.
-Manipulation → the Judas Swing. False move, raids stop clusters.
-Distribution → true delivery toward the DOL. Begins with displacement.
-You CANNOT enter during manipulation and profit consistently. Wait for manipulation to complete, then enter the distribution leg.
- 
-DRAW ON LIQUIDITY:
-Every setup requires naming the specific DOL. "Bullish" is not a DOL. "Previous day high at 21,400" is a DOL. Name it. The DOL on the highest confirmed timeframe is the primary target. All lower timeframe analysis serves to find entry into the move toward that DOL.
- 
-MARKET STRUCTURE:
-BOS (Break of Structure): confirms continuation, but only valid with displacement.
-CHoCH (Change of Character): first signal of reversal. Requires a structural swing broken opposite to trend.
-Displacement: large institutional candle leaving a FVG. The algorithm's fingerprint. Without displacement, a BOS or CHoCH is suspect.
- 
-FAIR VALUE GAP (FVG):
-3-candle imbalance. Top of the FVG = bottom of candle 1's wick. Bottom of the FVG = top of candle 3's wick. Price must return to fill it before continuing in most cases. The FVG within the OTE zone (61.8-79% retracement of the displacement leg) is the actual entry — not the OTE level itself. Do not enter the displacement candle. Wait for the retracement.
- 
-ORDER BLOCKS:
-The last opposing candle before a strong directional move. Bullish OB: last bearish candle before a bullish BOS with displacement. Bearish OB: last bullish candle before a bearish BOS with displacement. If price returns to an OB with a FVG inside it — the confluence is extremely high.
- 
-ENTRY MODEL (LTF):
-1. Price displaces from the manipulation low/high leaving a 15m FVG.
-2. Price retraces into that 15m FVG during a killzone.
-3. On 1m: internal stop hunt of lows (for longs) inside the FVG zone.
-4. 1m CHoCH confirms — structure flips in trade direction.
-5. Enter at the 1m FVG left by the CHoCH displacement.
-6. Stop: below the manipulation low (the stop hunt low). Not below the entry candle.
-7. Target: the named DOL identified on the HTF.
- 
-INTERMARKET ANALYSIS:
-DXY (Dollar Index): inverse correlation with risk assets and EUR/GBP/AUD. DXY bullish = bearish for indices, EUR, GBP. Check DXY direction before every trade.
-SMT Divergence: when two correlated instruments fail to confirm the same high or low. ES makes new high, NQ does not = bearish SMT = institutional distribution in progress. This is one of ICT's highest-probability signals.
-Bond yields: rising yields = risk-off = bearish indices.
- 
-SEASONAL TENDENCIES:
-Q1 (Jan-Mar): bullish expansion. Yearly open is the primary reference.
-Q2 (Apr-Jun): retracement or distribution. Yearly high often forms here.
-Q3 (Jul-Sep): accumulation. August is the slowest month. Reduce frequency.
-Q4 (Oct-Dec): strong trending. October low is often significant. Hold winners longer.
-Monthly cycle: first 3 days = opening range. Mid-month = manipulation. Week 3-4 = distribution. Last week = close positions.
- 
-PSYCHOLOGY (Mark Douglas + ICT):
-Think in probabilities. A loss on a valid setup is not a mistake. A win on an invalid setup is the most dangerous outcome — it reinforces bad behavior and will eventually destroy your account.
-Your job is to read the algorithm's delivery path, not to predict markets. When you are wrong, the algorithm showed you something — listen to it.
-Deviation from your model is not a trading decision. It is an emotional decision masquerading as one.
- 
-KILLZONES:
-London open (2-5am EST): Judas Swing window. Do not enter the initial spike.
-NY AM open (7-10am EST): primary distribution window. Best R setups form here.
-Silver Bullet (10-11am and 2-3pm EST): FVG formed INSIDE this window only.
-Outside killzones: do not enter. Random-hour moves are retail traps.
- 
-RED FOLDER PROTOCOL:
-No entries 30 minutes before or 15 minutes after high-impact news. After release: watch for Judas Swing, then identify true direction from displacement.
- 
-YOUR ANALYTICAL MANDATE:
-1. Name the Draw on Liquidity specifically. Never say "bullish/bearish" without naming the target level.
-2. Check for Judas Swing risk. Is the current move manipulation or distribution?
-3. Identify the AMD phase. You cannot evaluate an entry without knowing the phase.
-4. Check intermarket (DXY direction, SMT divergence between correlated pairs).
-5. Name the specific ICT pattern in play by its correct name.
-6. If timeframes conflict, name which dominates and precisely why.
-7. End with ONE specific actionable instruction — not a list, one thing.
- 
-RESPONSE STYLE:
-Direct mentor voice. Speak to the trader as someone who knows the model but is still developing discipline. Be honest when a setup is weak — a false validation is more harmful than a missed trade. No markdown, no bullet points, no asterisks. Write in continuous prose, 5-8 sentences. If the setup is invalid, say so clearly and briefly. Do not soften it.`;
- 
-/* ============================================================
-   ▸ 3. STATE
-   Single source of truth. Everything reads from here.
-   ============================================================ */
- 
+
+IPDA ALGORITHM: Price is algorithmically delivered between liquidity pools. It originates from an imbalance and terminates at liquidity — or originates from liquidity and terminates at an imbalance. The algorithm looks back 20, 40, and 60 trading days to identify resting liquidity targets. ALWAYS identify the Draw on Liquidity (DOL) before evaluating anything. Everything flows from the DOL.
+
+JUDAS SWING — YOUR PRIMARY FILTER: The Judas Swing is a manipulative move OPPOSITE to the true direction. It appears at session opens, especially London (2-5am EST). It breaks a key level aggressively, triggers stops, then immediately reverses with displacement in the true direction. ALWAYS ask: is this move the Judas or the real delivery? If price broke a level and immediately reversed with a strong displacement candle — that was the Judas. The real move has already begun in the opposite direction.
+
+AMD MODEL: Accumulation → price ranges, builds orders on both sides. Manipulation → the Judas Swing. False move, raids stop clusters. Distribution → true delivery toward the DOL. Begins with displacement. You CANNOT enter during manipulation and profit consistently. Wait for manipulation to complete, then enter the distribution leg.
+
+DRAW ON LIQUIDITY: Every setup requires naming the specific DOL. "Bullish" is not a DOL. "Previous day high at 21,400" is a DOL. Name it. The DOL on the highest confirmed timeframe is the primary target.
+
+MARKET STRUCTURE: BOS confirms continuation, but only valid with displacement. CHoCH is the first signal of reversal. Displacement is the algorithm's fingerprint — without it, a BOS or CHoCH is suspect.
+
+FAIR VALUE GAP: 3-candle imbalance. The FVG within the OTE zone (61.8-79% retracement) is the actual entry — not the OTE level itself. Do not enter the displacement candle. Wait for the retracement.
+
+ENTRY MODEL: 1. Price displaces leaving a 15m FVG. 2. Price retraces into that FVG during a killzone. 3. On 1m: internal stop hunt inside the FVG zone. 4. 1m CHoCH confirms. 5. Enter at the 1m FVG left by the CHoCH displacement. 6. Stop: below the manipulation low. 7. Target: the named DOL.
+
+INTERMARKET: DXY inverse correlation with risk assets. DXY bullish = bearish indices. SMT Divergence: ES makes new high, NQ does not = bearish SMT = institutional distribution. Check before every trade.
+
+SEASONAL: Q1 bullish expansion. Q2 retracement. Q3 accumulation. Q4 strong trending. Monthly: first 3 days = opening range. Mid-month = manipulation. Week 3-4 = distribution.
+
+PSYCHOLOGY: Think in probabilities. A loss on a valid setup is not a mistake. A win on an invalid setup is the most dangerous outcome — it reinforces bad behavior. Deviation from your model is an emotional decision masquerading as a trading decision.
+
+KILLZONES: London 2-5am EST, NY AM 7-10am EST, Silver Bullet 10-11am and 2-3pm EST. Outside killzones: do not enter.
+
+YOUR MANDATE: 1. Name the DOL specifically. 2. Check for Judas Swing risk. 3. Identify the AMD phase. 4. Check intermarket. 5. Name the ICT pattern. 6. If timeframes conflict, name which dominates. 7. End with ONE specific actionable instruction.
+
+STYLE: Direct mentor voice. No markdown, no bullets, no asterisks. Continuous prose, 5-8 sentences. If the setup is invalid, say so clearly.`;
+
+/* ── STATE ── */
 const D = {
-  // Macro analysis
   q: { bias:null, phase:null, pos:null, high:'', low:'', targets:'', intermarket:'', narrative:'' },
   m: { bias:null, pos:null, draw:null, open:'', high:'', low:'', levels:'', narrative:'', longtargets:'' },
   seasonal: { notes:'' },
-  // Weekly plan
   w: { bias:null, str:null, pos:null, draw:null, levels:'', day:null, pat:null, narrative:'', dont:[] },
-  // Session (daily)
   s: { day:null, bias:null, draw:null, sess:null, levels:'', narrative:'' },
-  // Scratch state for pill groups (rebuilt from DOM when needed)
   ev: { impact:null },
-  // Logged data
-  trades: [],
-  events: [],
-  weeklyHistory: [],
-  pendingBt: null,
+  trades: [], events: [], weeklyHistory: [], pendingBt: null,
 };
- 
-/* ============================================================
-   ▸ 4. PERSISTENCE
-   ============================================================ */
- 
+
+/* ── PERSISTENCE ── */
 function save() {
-  try {
-    // Don't persist pendingBt — it's transient
-    const { pendingBt: _p, ...toSave } = D;
-    localStorage.setItem(CFG.storageKey, JSON.stringify(toSave));
-  } catch (e) { console.warn('[IPDA] Save failed:', e.message); }
+  try { const { pendingBt: _p, ...toSave } = D; localStorage.setItem(CFG.storageKey, JSON.stringify(toSave)); }
+  catch (e) { console.warn('[IPDA] Save failed:', e.message); }
 }
- 
 function load() {
   try {
     const raw = localStorage.getItem(CFG.storageKey);
     if (raw) {
       const saved = JSON.parse(raw);
-      // Deep merge: saved values override defaults, missing keys keep defaults
       Object.keys(saved).forEach(k => {
-        if (k in D && typeof D[k] === 'object' && !Array.isArray(D[k])) {
-          D[k] = { ...D[k], ...saved[k] };
-        } else if (k in D) {
-          D[k] = saved[k];
-        }
+        if (k in D && typeof D[k] === 'object' && !Array.isArray(D[k])) D[k] = { ...D[k], ...saved[k] };
+        else if (k in D) D[k] = saved[k];
       });
     }
   } catch (e) { console.warn('[IPDA] Load failed:', e.message); }
 }
- 
-/* ============================================================
-   ▸ 5. STRIKE SYSTEM
-   ============================================================ */
- 
+
+/* ── STRIKE SYSTEM ── */
 function strikeLoad() {
-  try {
-    const raw = localStorage.getItem(CFG.strikesKey);
-    return raw ? JSON.parse(raw) : { count:0, lockoutUntil:null, history:[] };
-  } catch { return { count:0, lockoutUntil:null, history:[] }; }
+  try { const raw = localStorage.getItem(CFG.strikesKey); return raw ? JSON.parse(raw) : { count:0, lockoutUntil:null, history:[] }; }
+  catch { return { count:0, lockoutUntil:null, history:[] }; }
 }
- 
-function strikeSave(s) {
-  localStorage.setItem(CFG.strikesKey, JSON.stringify(s));
-}
- 
-function strikeIsLockedOut(s) {
-  return !!(s.lockoutUntil && Date.now() < s.lockoutUntil);
-}
- 
+function strikeSave(s) { localStorage.setItem(CFG.strikesKey, JSON.stringify(s)); }
+function strikeIsLockedOut(s) { return !!(s.lockoutUntil && Date.now() < s.lockoutUntil); }
 function strikeLockoutRemaining(s) {
   if (!s.lockoutUntil) return null;
   const rem = s.lockoutUntil - Date.now();
   if (rem <= 0) return null;
-  return {
-    h:   Math.floor(rem / 3_600_000),
-    m:   Math.floor((rem % 3_600_000) / 60_000),
-    sec: Math.floor((rem % 60_000) / 1_000),
-    total: rem,
-  };
+  return { h: Math.floor(rem/3600000), m: Math.floor((rem%3600000)/60000), sec: Math.floor((rem%60000)/1000), total: rem };
 }
- 
-/**
- * strikeAdd(reason, score)
- * Called when a trader logs an invalid setup or
- * a trade scoring below 7/10.
- */
 function strikeAdd(reason = 'Invalid setup', score = 0) {
   const s = strikeLoad();
-  if (strikeIsLockedOut(s)) return s;           // no stacking during lockout
- 
+  if (strikeIsLockedOut(s)) return s;
   s.count = Math.min((s.count || 0) + 1, 3);
-  s.history = [
-    { ts: Date.now(), reason, score, strike: s.count },
-    ...(s.history || []),
-  ].slice(0, 30);
- 
-  if (s.count >= 3) {
-    s.lockoutUntil = Date.now() + CFG.lockoutHours * 3_600_000;
-  }
- 
-  strikeSave(s);
-  strikeUpdateUI();
-  return s;
+  s.history = [{ ts: Date.now(), reason, score, strike: s.count }, ...(s.history || [])].slice(0, 30);
+  if (s.count >= 3) s.lockoutUntil = Date.now() + CFG.lockoutHours * 3600000;
+  strikeSave(s); strikeUpdateUI(); return s;
 }
- 
-/**
- * strikeReset()
- * Only callable after lockout has naturally expired,
- * or from Settings by the trader.
- */
 function strikeReset() {
   const s = strikeLoad();
-  if (strikeIsLockedOut(s)) {
-    toast('⛔ Lockout still active — cannot reset yet');
-    return;
-  }
-  strikeSave({ count:0, lockoutUntil:null, history:[] });
-  strikeUpdateUI();
-  toast('Strikes reset ✓');
+  if (strikeIsLockedOut(s)) { toast('⛔ Lockout still active — cannot reset yet'); return; }
+  strikeSave({ count:0, lockoutUntil:null, history:[] }); strikeUpdateUI(); toast('Strikes reset ✓');
 }
- 
-/**
- * strikeCheckExpiry()
- * Called on every app open — auto-clears expired lockouts.
- */
 function strikeCheckExpiry() {
   const s = strikeLoad();
-  if (s.lockoutUntil && Date.now() >= s.lockoutUntil) {
-    s.count = 0;
-    s.lockoutUntil = null;
-    strikeSave(s);
-  }
+  if (s.lockoutUntil && Date.now() >= s.lockoutUntil) { s.count = 0; s.lockoutUntil = null; strikeSave(s); }
   return strikeLoad();
 }
- 
-/* ── Strike mode derivation ── */
 function strikeGetMode(s) {
   if (s.count >= 3 || strikeIsLockedOut(s)) return 'BRUTAL';
   if (s.count === 2) return 'WARNING';
   if (s.count === 1) return 'CAUTION';
   return 'CLEAN';
 }
- 
 function strikeUpdateUI() {
-  const s = strikeLoad();
-  const mode = strikeGetMode(s);
-  const ind = document.getElementById('strike-indicator');
- 
-  // Body class drives CSS variable overrides (defined in your CSS shell)
-  document.body.classList.remove('brutal', 'strike2', 'strike1');
+  const s = strikeLoad(); const mode = strikeGetMode(s); const ind = document.getElementById('strike-indicator');
+  document.body.classList.remove('brutal','strike2','strike1');
   if (ind) {
     ind.className = '';
-    if (mode === 'BRUTAL')  { document.body.classList.add('brutal');  ind.classList.add('s3'); }
+    if (mode === 'BRUTAL') { document.body.classList.add('brutal'); ind.classList.add('s3'); }
     if (mode === 'WARNING') { document.body.classList.add('strike2'); ind.classList.add('s2'); }
-    if (mode === 'CAUTION') {                                          ind.classList.add('s1'); }
+    if (mode === 'CAUTION') ind.classList.add('s1');
   }
- 
-  // Update settings modal if open
-  const settingsStrikes = document.getElementById('settings-strikes');
-  if (settingsStrikes) settingsStrikes.textContent = s.count;
+  const ss = document.getElementById('settings-strikes'); if (ss) ss.textContent = s.count;
 }
- 
-/* ============================================================
-   ▸ 6. BRUTAL MODE SCREEN
-   Shown when strikes === 3 or lockout is active.
-   ============================================================ */
- 
+
+/* ── BRUTAL MODE ── */
 let _brutalTick = null;
- 
 function brutalShow(s) {
-  const screen = document.getElementById('brutal-screen');
-  if (!screen) return;
- 
-  document.body.classList.add('brutal');
-  screen.classList.add('active');
- 
-  // Set unlock time display
-  const until = new Date(s.lockoutUntil);
-  const untilEl = document.getElementById('brutal-until');
-  if (untilEl) {
-    untilEl.textContent = 'Unlocks at ' +
-      until.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12:true });
-  }
- 
-  // Countdown ticker
+  const screen = document.getElementById('brutal-screen'); if (!screen) return;
+  document.body.classList.add('brutal'); screen.classList.add('active');
+  const until = new Date(s.lockoutUntil); const untilEl = document.getElementById('brutal-until');
+  if (untilEl) untilEl.textContent = 'Unlocks at ' + until.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12:true });
   if (_brutalTick) clearInterval(_brutalTick);
   _brutalTick = setInterval(() => {
-    const rem = strikeLockoutRemaining(strikeLoad());
-    const el  = document.getElementById('brutal-countdown');
-    if (!rem) {
-      clearInterval(_brutalTick);
-      screen.classList.remove('active');
-      document.body.classList.remove('brutal');
-      strikeUpdateUI();
-      return;
-    }
-    if (el) {
-      el.textContent =
-        String(rem.h).padStart(2,'0') + ':' +
-        String(rem.m).padStart(2,'0') + ':' +
-        String(rem.sec).padStart(2,'0');
-    }
+    const rem = strikeLockoutRemaining(strikeLoad()); const el = document.getElementById('brutal-countdown');
+    if (!rem) { clearInterval(_brutalTick); screen.classList.remove('active'); document.body.classList.remove('brutal'); strikeUpdateUI(); return; }
+    if (el) el.textContent = String(rem.h).padStart(2,'0') + ':' + String(rem.m).padStart(2,'0') + ':' + String(rem.sec).padStart(2,'0');
   }, 1000);
 }
- 
-/* ============================================================
-   ▸ 7. MINDSET GATE (long-press acknowledgment)
-   ============================================================ */
- 
+
+/* ── MINDSET GATE ── */
 const QUOTES_CLEAN = [
-  { text: "Think in probabilities. Your edge plays out over a series of trades — not one.",                    attr: "Mark Douglas, Trading in the Zone" },
-  { text: "The goal of a successful trader is to make the best trades. Money is secondary.",                   attr: "Alexander Elder" },
-  { text: "The market does not know you exist. It owes you nothing. Align with it or step aside.",            attr: "ICT Mentorship" },
-  { text: "React to what the market is doing, not what you think it should do.",                              attr: "Jesse Livermore" },
-  { text: "Patience is not passive waiting. It is active watching for the right moment.",                     attr: "ICT — Killzone Theory" },
-  { text: "You have power over your mind, not outside events. Realize this and you will find strength.",      attr: "Marcus Aurelius, Meditations" },
-  { text: "The algorithm does not care about your opinion. It cares about liquidity.",                        attr: "ICT — IPDA Framework" },
-  { text: "In trading, being wrong is unavoidable. Staying wrong is a choice.",                               attr: "Mark Douglas" },
-  { text: "Amateurs think about how much money they can make. Professionals think about risk.",                attr: "Jack Schwager" },
-  { text: "It is not the strongest of the species that survives, but the one most adaptable to change.",      attr: "Darwin" },
+  { text:"Think in probabilities. Your edge plays out over a series of trades — not one.", attr:"Mark Douglas, Trading in the Zone" },
+  { text:"The market does not know you exist. It owes you nothing. Align with it or step aside.", attr:"ICT Mentorship" },
+  { text:"React to what the market is doing, not what you think it should do.", attr:"Jesse Livermore" },
+  { text:"Patience is not passive waiting. It is active watching for the right moment.", attr:"ICT — Killzone Theory" },
+  { text:"You have power over your mind, not outside events. Realize this and you will find strength.", attr:"Marcus Aurelius" },
+  { text:"The algorithm does not care about your opinion. It cares about liquidity.", attr:"ICT — IPDA Framework" },
+  { text:"In trading, being wrong is unavoidable. Staying wrong is a choice.", attr:"Mark Douglas" },
+  { text:"Amateurs think about how much money they can make. Professionals think about risk.", attr:"Jack Schwager" },
 ];
- 
 const QUOTES_WARNING = [
-  { text: "You have one strike remaining. The next deviation triggers a 4-hour lockout. Execute only at 7/10 or above.", attr: "IPDA Brain — Strike Warning" },
-  { text: "Two deviations. The algorithm will exploit your current state. One more and you are locked out. No exceptions.", attr: "IPDA Brain — Final Warning" },
+  { text:"You have one strike remaining. The next deviation triggers a 4-hour lockout. Execute only at 7/10 or above.", attr:"IPDA Brain — Strike Warning" },
+  { text:"Two deviations. The algorithm will exploit your current state. One more and you are locked out. No exceptions.", attr:"IPDA Brain — Final Warning" },
 ];
- 
-let _holdTimer    = null;
-let _holdInterval = null;
-let _holdProgress = 0;
-const HOLD_MS     = 1800;
- 
+let _holdTimer = null, _holdInterval = null, _holdProgress = 0;
+const HOLD_MS = 1800;
+
 function gateShow() {
   const s = strikeCheckExpiry();
- 
-  // Locked out → go straight to brutal screen
   if (strikeIsLockedOut(s)) { brutalShow(s); return; }
- 
-  const gate   = document.getElementById('mindset-gate');
-  const mode   = strikeGetMode(s);
-  if (!gate) return;
- 
-  gate.classList.add('active');
-  _holdProgress = 0;
-  const fill = document.getElementById('hold-fill');
-  if (fill) fill.style.width = '0%';
- 
-  // Pick quote
+  const gate = document.getElementById('mindset-gate'); const mode = strikeGetMode(s); if (!gate) return;
+  gate.classList.add('active'); _holdProgress = 0;
+  const fill = document.getElementById('hold-fill'); if (fill) fill.style.width = '0%';
   const isWarning = s.count >= 1;
-  const pool      = isWarning ? QUOTES_WARNING : QUOTES_CLEAN;
-  const dayIdx    = Math.floor(Date.now() / 86_400_000) % pool.length;
-  const q         = isWarning
-    ? QUOTES_WARNING[Math.min(s.count - 1, QUOTES_WARNING.length - 1)]
-    : pool[dayIdx];
- 
-  // Populate quote
-  const qText = document.getElementById('gate-quote-text');
-  const qAttr = document.getElementById('gate-quote-attr');
-  if (qText) qText.textContent = '"' + q.text + '"';
-  if (qAttr) qAttr.textContent = '— ' + q.attr;
- 
-  // Badge
+  const pool = isWarning ? QUOTES_WARNING : QUOTES_CLEAN;
+  const q = isWarning ? QUOTES_WARNING[Math.min(s.count-1, QUOTES_WARNING.length-1)] : pool[Math.floor(Date.now()/86400000) % pool.length];
+  const qText = document.getElementById('gate-quote-text'); const qAttr = document.getElementById('gate-quote-attr');
+  if (qText) qText.textContent = '"' + q.text + '"'; if (qAttr) qAttr.textContent = '— ' + q.attr;
   const badge = document.getElementById('gate-badge');
-  if (badge) {
-    const labels = { CLEAN:'SESSION ENTRY', CAUTION:'⚡ STRIKE 1 OF 3', WARNING:'⚡⚡ STRIKE 2 — FINAL WARNING' };
-    const colors = { CLEAN:'#42a5f5', CAUTION:'#ffd700', WARNING:'#ff9800' };
-    badge.textContent = labels[mode] || 'SESSION ENTRY';
-    badge.style.color = colors[mode] || '#42a5f5';
-  }
- 
-  // Intentions title color
+  if (badge) { const labels={CLEAN:'SESSION ENTRY',CAUTION:'⚡ STRIKE 1 OF 3',WARNING:'⚡⚡ STRIKE 2 — FINAL WARNING'}; const colors={CLEAN:'#42a5f5',CAUTION:'#ffd700',WARNING:'#ff9800'}; badge.textContent=labels[mode]||'SESSION ENTRY'; badge.style.color=colors[mode]||'#42a5f5'; }
   const intTitle = document.getElementById('intentions-title');
-  if (intTitle) {
-    const colors = { CLEAN:'#42a5f5', CAUTION:'#ffd700', WARNING:'#ff9800' };
-    intTitle.style.color = colors[mode] || '#42a5f5';
-    intTitle.textContent = 'Before entering this session, I confirm:';
-  }
- 
-  // Hold button styling
+  if (intTitle) { const colors={CLEAN:'#42a5f5',CAUTION:'#ffd700',WARNING:'#ff9800'}; intTitle.style.color=colors[mode]||'#42a5f5'; intTitle.textContent='Before entering this session, I confirm:'; }
   const btn = document.getElementById('hold-btn');
-  if (btn) {
-    const accentColor = mode === 'CLEAN' ? '#42a5f5' : mode === 'CAUTION' ? '#ffd700' : '#ff9800';
-    btn.style.borderColor = accentColor;
-    btn.style.color       = accentColor;
-    if (fill) fill.style.background = accentColor;
-    document.getElementById('hold-instruction').textContent = 'Hold to acknowledge';
-    btn.textContent = 'HOLD TO ACKNOWLEDGE & ENTER';
-  }
+  if (btn) { const ac=mode==='CLEAN'?'#42a5f5':mode==='CAUTION'?'#ffd700':'#ff9800'; btn.style.borderColor=ac; btn.style.color=ac; if(fill)fill.style.background=ac; document.getElementById('hold-instruction').textContent='Hold to acknowledge'; btn.textContent='HOLD TO ACKNOWLEDGE & ENTER'; }
 }
- 
+
 function startHold() {
   if (_holdTimer) return;
-  const fill  = document.getElementById('hold-fill');
-  const btn   = document.getElementById('hold-btn');
-  const start = Date.now();
- 
-  _holdInterval = setInterval(() => {
-    _holdProgress = (Date.now() - start) / HOLD_MS;
-    if (fill) fill.style.width = Math.min(_holdProgress * 100, 100) + '%';
-  }, 30);
- 
+  const fill = document.getElementById('hold-fill'); const btn = document.getElementById('hold-btn'); const start = Date.now();
+  _holdInterval = setInterval(() => { _holdProgress=(Date.now()-start)/HOLD_MS; if(fill)fill.style.width=Math.min(_holdProgress*100,100)+'%'; }, 30);
   _holdTimer = setTimeout(() => {
-    clearInterval(_holdInterval);
-    _holdTimer = null;
-    // Acknowledged
+    clearInterval(_holdInterval); _holdTimer = null;
     if (btn) btn.textContent = '✓ ACKNOWLEDGED — ENTERING SESSION';
-    const instr = document.getElementById('hold-instruction');
-    if (instr) instr.textContent = '✓ Acknowledged';
+    const instr = document.getElementById('hold-instruction'); if (instr) instr.textContent = '✓ Acknowledged';
     if (fill) fill.style.width = '100%';
- 
-    setTimeout(() => {
-      const gate = document.getElementById('mindset-gate');
-      if (gate) gate.classList.remove('active');
-    }, 500);
+    setTimeout(() => { const gate = document.getElementById('mindset-gate'); if (gate) gate.classList.remove('active'); }, 500);
   }, HOLD_MS);
 }
- 
+
 function endHold() {
   if (!_holdTimer) return;
-  clearTimeout(_holdTimer);
-  clearInterval(_holdInterval);
-  _holdTimer = null;
- 
-  // Animate fill back to 0
-  let w = _holdProgress * 100;
-  const fill = document.getElementById('hold-fill');
-  const decay = setInterval(() => {
-    w = Math.max(0, w - 6);
-    if (fill) fill.style.width = w + '%';
-    if (w <= 0) clearInterval(decay);
-  }, 16);
+  clearTimeout(_holdTimer); clearInterval(_holdInterval); _holdTimer = null;
+  let w = _holdProgress * 100; const fill = document.getElementById('hold-fill');
+  const decay = setInterval(() => { w=Math.max(0,w-6); if(fill)fill.style.width=w+'%'; if(w<=0)clearInterval(decay); }, 16);
 }
- 
-/* ============================================================
-   ▸ 8. 7/10 DECISION ENGINE
-   Ten ICT items. Score < 7 = "RETAIL LIQUIDITY DETECTED".
-   ============================================================ */
- 
+
+/* ── DECISION ENGINE ── */
 const DE_ITEMS = [
-  {
-    id: 'seasonal', cat: 'MACRO', label: 'Seasonal tendency aligned',
-    desc: 'Q1 bullish / Q2 distribution / Q3 accumulation / Q4 trending — current position matches quarterly delivery pattern.',
-    ref:  'ICT: Quarterly Theory & Seasonal Tendencies',
-  },
-  {
-    id: 'quarterly', cat: 'MACRO', label: 'Quarterly bias confirmed — IPDA 20/40/60d',
-    desc: 'Weekly and monthly structure confirms quarterly narrative. IPDA 20/40/60 day liquidity targets are identified and aligned.',
-    ref:  'ICT: IPDA Quarterly Shift — 20/40/60 day lookback',
-  },
-  {
-    id: 'monthly', cat: 'BIAS', label: 'Monthly bias confirmed — correct range position',
-    desc: 'Price is in correct position within the monthly dealing range. Monthly Draw on Liquidity is named and consistent with trade direction.',
-    ref:  'ICT: Monthly Chart Analysis & Dealing Range',
-  },
-  {
-    id: 'weekly', cat: 'BIAS', label: 'Weekly bias + day profile aligned',
-    desc: "Weekly structure (HH/HL or LH/LL) is clear. Today's day aligns with the expected delivery profile. Tuesday = manipulation, Wed-Thu = distribution.",
-    ref:  'ICT: Weekly Profile — Tuesday manipulation, Wednesday-Thursday distribution',
-  },
-  {
-    id: 'dxy', cat: 'INTERMARKET', label: 'DXY correlated — no intermarket conflict',
-    desc: 'Dollar Index is moving in alignment with the trade direction. For index/risk-asset longs: DXY is declining or neutral. No DXY conflict detected.',
-    ref:  'ICT: Interbank Flow & DXY Correlation',
-  },
-  {
-    id: 'smt', cat: 'INTERMARKET', label: 'SMT divergence checked',
-    desc: 'Correlated instruments (ES/NQ or EUR/GBP) are confirming the same high or low. If one makes a new high/low and the other does not — that divergence IS the signal.',
-    ref:  'ICT: Smart Money Technique (SMT) Divergence',
-  },
-  {
-    id: 'amd', cat: 'NARRATIVE', label: 'Manipulation leg complete — AMD phase confirmed',
-    desc: 'London or NY swept the relevant range. Stop hunt occurred on the correct side. The Judas Swing has completed. Not entering during the manipulation leg.',
-    ref:  'ICT: AMD Model — Accumulation, Manipulation, Distribution. Judas Swing identification.',
-  },
-  {
-    id: 'fvg', cat: 'ENTRY', label: '15m displacement + FVG formed and marked',
-    desc: 'Large-body 15m displacement candle left a clear 3-candle FVG. Price has retraced or is retracing into the FVG. Zone is precisely marked on the chart.',
-    ref:  'ICT: Fair Value Gap, Displacement, Institutional Order Flow',
-  },
-  {
-    id: 'chaoch', cat: 'ENTRY', label: '1m CHoCH confirmed inside FVG/OTE zone',
-    desc: 'Price retraced to 15m FVG or OTE (61.8-79%). On 1m: internal stop hunt occurred inside the zone, then a 1m swing was broken in the trade direction. Entry is AFTER the CHoCH.',
-    ref:  'ICT: Lower Timeframe Entry Model — 1m CHoCH, internal liquidity raid',
-  },
-  {
-    id: 'killzone', cat: 'TIMING', label: 'Killzone timing — no Red Folder conflict',
-    desc: 'Entry is within London open, NY AM open, or Silver Bullet window. No high-impact news within 30 minutes. Red Folder Protocol has been checked.',
-    ref:  'ICT: Killzone Theory, Silver Bullet 10-11am / 2-3pm EST, Red Folder Protocol',
-  },
+  { id:'seasonal',  cat:'MACRO',       label:'Seasonal tendency aligned',                    desc:'Q1 bullish / Q2 distribution / Q3 accumulation / Q4 trending — matches quarterly delivery pattern.',           ref:'ICT: Quarterly Theory & Seasonal Tendencies' },
+  { id:'quarterly', cat:'MACRO',       label:'Quarterly bias confirmed — IPDA 20/40/60d',    desc:'Weekly/monthly structure confirms quarterly narrative. IPDA 20/40/60 day liquidity targets identified.',           ref:'ICT: IPDA Quarterly Shift — 20/40/60 day lookback' },
+  { id:'monthly',   cat:'BIAS',        label:'Monthly bias confirmed — correct range position', desc:'Price in correct position within monthly dealing range. Monthly DOL named and consistent with trade direction.', ref:'ICT: Monthly Chart Analysis & Dealing Range' },
+  { id:'weekly',    cat:'BIAS',        label:'Weekly bias + day profile aligned',              desc:'Weekly structure clear (HH/HL or LH/LL). Today aligns with delivery profile. Tuesday = manipulation, Wed-Thu = distribution.', ref:'ICT: Weekly Profile — Tuesday manipulation, Wed-Thu distribution' },
+  { id:'dxy',       cat:'INTERMARKET', label:'DXY correlated — no intermarket conflict',       desc:'Dollar Index aligned with trade direction. For index/risk longs: DXY declining or neutral.',                    ref:'ICT: Interbank Flow & DXY Correlation' },
+  { id:'smt',       cat:'INTERMARKET', label:'SMT divergence checked',                         desc:'Correlated instruments confirming same high/low. ES/NQ or EUR/GBP moving together.',                           ref:'ICT: Smart Money Technique (SMT) Divergence' },
+  { id:'amd',       cat:'NARRATIVE',   label:'Manipulation leg complete — AMD confirmed',      desc:'London or NY swept the range. Stop hunt on correct side. Judas Swing completed. Not entering during manipulation.', ref:'ICT: AMD Model. Judas Swing identification.' },
+  { id:'fvg',       cat:'ENTRY',       label:'15m displacement + FVG formed and marked',       desc:'Large 15m displacement candle left clear 3-candle FVG. Price retracing into FVG. Zone precisely marked.',      ref:'ICT: Fair Value Gap, Displacement' },
+  { id:'chaoch',    cat:'ENTRY',       label:'1m CHoCH confirmed inside FVG/OTE zone',         desc:'Price at 15m FVG or OTE (61.8-79%). On 1m: internal stop hunt occurred, then 1m swing broken in trade direction. Entry AFTER CHoCH.', ref:'ICT: Lower Timeframe Entry Model — 1m CHoCH' },
+  { id:'killzone',  cat:'TIMING',      label:'Killzone timing — no Red Folder conflict',        desc:'Entry within London, NY AM, or Silver Bullet window. No high-impact news within 30 minutes.',                  ref:'ICT: Killzone Theory, Silver Bullet, Red Folder Protocol' },
 ];
- 
-const DE_CAT_COLORS = {
-  MACRO:       '#ce93d8',
-  BIAS:        '#42a5f5',
-  INTERMARKET: '#ff9800',
-  NARRATIVE:   '#4caf50',
-  ENTRY:       '#26c6da',
-  TIMING:      '#ffd700',
-};
- 
-// checked[id] = true | false | undefined
-let _deChecked  = {};
-let _deExpanded = {};
- 
-/** Return current score from checked items */
-function deScore() {
-  return DE_ITEMS.filter(i => _deChecked[i.id] === true).length;
-}
- 
-/** Main 7/10 gate: returns true if score >= CFG.minScore */
-function dePassed() {
-  return deScore() >= CFG.minScore;
-}
- 
-/**
- * scanAndGate()
- * Called after every pill tap, every tab switch to Session,
- * and before logLiveTrade / logBacktest.
- * Enables or disables the execute / log buttons based on score.
- */
+const DE_CAT_COLORS = { MACRO:'#ce93d8', BIAS:'#42a5f5', INTERMARKET:'#ff9800', NARRATIVE:'#4caf50', ENTRY:'#26c6da', TIMING:'#ffd700' };
+let _deChecked = {}, _deExpanded = {};
+function deScore() { return DE_ITEMS.filter(i => _deChecked[i.id] === true).length; }
+function dePassed() { return deScore() >= CFG.minScore; }
+
 function scanAndGate() {
-  const score  = deScore();
-  const passed = score >= CFG.minScore;
- 
-  // Buttons to gate
-  const gatedIds = ['lt-btn', 'bt-btn', 'brain-btn'];
-  gatedIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    // Brain button is never gated — analysis always allowed
-    if (id === 'brain-btn') { el.disabled = false; return; }
-    el.disabled = !passed;
-    el.title    = passed ? '' : `Need ${CFG.minScore - score} more confluence items`;
-  });
- 
-  // Show score inline in session views
-  const scoreDisplay = document.getElementById('de-score-display');
-  if (scoreDisplay) {
-    scoreDisplay.style.display = score > 0 ? 'block' : 'none';
-    const pct   = score / DE_ITEMS.length * 100;
-    const color = pct >= 90 ? '#ffd700' : passed ? '#4caf50' : score >= 4 ? '#ff9800' : '#f44336';
-    scoreDisplay.style.color = color;
-    scoreDisplay.textContent  = passed
-      ? `🎯 ${score}/10 — Valid. Execute with confidence.`
-      : `⛔ ${score}/10 — RETAIL LIQUIDITY DETECTED. Need ${CFG.minScore - score} more.`;
-  }
- 
-  // If modal is open, re-render it
-  if (document.getElementById('de-modal')?.classList.contains('active')) {
-    deRenderModal();
-  }
+  const score = deScore(); const passed = score >= CFG.minScore;
+  ['lt-btn','bt-btn'].forEach(id => { const el=document.getElementById(id); if(!el)return; el.disabled=!passed; el.title=passed?'':`Need ${CFG.minScore-score} more confluence items`; });
+  const brain = document.getElementById('brain-btn'); if (brain) brain.disabled = false;
+  const sd = document.getElementById('de-score-display');
+  if (sd) { sd.style.display=score>0?'block':'none'; const pct=score/DE_ITEMS.length*100; const c=pct>=90?'#ffd700':passed?'#4caf50':score>=4?'#ff9800':'#f44336'; sd.style.color=c; sd.textContent=passed?`🎯 ${score}/10 — Valid. Execute with confidence.`:`⛔ ${score}/10 — RETAIL LIQUIDITY DETECTED. Need ${CFG.minScore-score} more.`; }
+  if (document.getElementById('de-modal')?.classList.contains('active')) deRenderModal();
 }
- 
-function deOpen() {
-  document.getElementById('de-modal')?.classList.add('active');
-  deRenderModal();
-}
- 
-function deClose() {
-  document.getElementById('de-modal')?.classList.remove('active');
-}
- 
-function deToggle(id) {
-  const cur = _deChecked[id];
-  // Cycle: undefined → true → false → undefined
-  if (cur === undefined) _deChecked[id] = true;
-  else if (cur === true)  _deChecked[id] = false;
-  else                    delete _deChecked[id];
-  deRenderModal();
-  scanAndGate();
-}
- 
-function deToggleExpand(id) {
-  _deExpanded[id] = !_deExpanded[id];
-  deRenderModal();
-}
- 
-function deExecute() {
-  if (!dePassed()) return;
-  const scoreDisplay = document.getElementById('de-score-display');
-  if (scoreDisplay) {
-    scoreDisplay.style.display = 'block';
-    scoreDisplay.style.color   = '#4caf50';
-    scoreDisplay.textContent   = `🎯 ${deScore()}/10 — Confluence confirmed. Execute.`;
-  }
-  deClose();
-}
- 
+function deOpen() { document.getElementById('de-modal')?.classList.add('active'); deRenderModal(); }
+function deClose() { document.getElementById('de-modal')?.classList.remove('active'); }
+function deToggle(id) { const cur=_deChecked[id]; if(cur===undefined)_deChecked[id]=true; else if(cur===true)_deChecked[id]=false; else delete _deChecked[id]; deRenderModal(); scanAndGate(); }
+function deToggleExpand(id) { _deExpanded[id]=!_deExpanded[id]; deRenderModal(); }
+function deExecute() { if(!dePassed())return; const sd=document.getElementById('de-score-display'); if(sd){sd.style.display='block';sd.style.color='#4caf50';sd.textContent=`🎯 ${deScore()}/10 — Confluence confirmed. Execute.`;} deClose(); }
+
 function deRenderModal() {
-  const container = document.getElementById('de-items-container');
-  if (!container) return;
- 
-  const score  = deScore();
-  const passed = score >= CFG.minScore;
-  const pct    = score / DE_ITEMS.length * 100;
-  const color  = pct >= 90 ? '#ffd700' : passed ? '#4caf50' : pct >= 40 ? '#ff9800' : '#f44336';
- 
-  // Score circle
-  const numEl = document.getElementById('de-score-num');
-  if (numEl) { numEl.textContent = score; numEl.style.color = color; }
-  const circleEl = document.getElementById('de-score-circle');
-  if (circleEl) circleEl.style.borderColor = color;
-  const prog = document.getElementById('de-progress');
-  if (prog) { prog.style.width = pct + '%'; prog.style.background = color; }
- 
-  // Verdict
-  const verd = document.getElementById('de-verdict');
-  if (verd) {
-    if (score === DE_ITEMS.length) {
-      verd.textContent   = '✦ FULL CONFLUENCE — MAXIMUM INSTITUTIONAL PROBABILITY';
-      verd.style.background  = '#2a2000'; verd.style.borderColor = '#5a4f00'; verd.style.color = '#ffd700';
-    } else if (passed) {
-      verd.textContent   = `✦ VALID SETUP — ${score}/10 CONFIRMED`;
-      verd.style.background  = '#1a3a1a'; verd.style.borderColor = '#2d6a2d'; verd.style.color = '#4caf50';
-    } else {
-      verd.textContent   = `RETAIL LIQUIDITY DETECTED: UNFAVORABLE PROBABILITY — ${score}/10`;
-      verd.style.background  = '#2a0000'; verd.style.borderColor = '#5a0000'; verd.style.color = '#f44336';
-    }
+  const container = document.getElementById('de-items-container'); if (!container) return;
+  const score=deScore(); const passed=score>=CFG.minScore; const pct=score/DE_ITEMS.length*100;
+  const color=pct>=90?'#ffd700':passed?'#4caf50':pct>=40?'#ff9800':'#f44336';
+  const numEl=document.getElementById('de-score-num'); if(numEl){numEl.textContent=score;numEl.style.color=color;}
+  const circleEl=document.getElementById('de-score-circle'); if(circleEl)circleEl.style.borderColor=color;
+  const prog=document.getElementById('de-progress'); if(prog){prog.style.width=pct+'%';prog.style.background=color;}
+  const verd=document.getElementById('de-verdict');
+  if(verd){
+    if(score===DE_ITEMS.length){verd.textContent='✦ FULL CONFLUENCE — MAXIMUM INSTITUTIONAL PROBABILITY';verd.style.background='#2a2000';verd.style.borderColor='#5a4f00';verd.style.color='#ffd700';}
+    else if(passed){verd.textContent=`✦ VALID SETUP — ${score}/10 CONFIRMED`;verd.style.background='#1a3a1a';verd.style.borderColor='#2d6a2d';verd.style.color='#4caf50';}
+    else{verd.textContent=`RETAIL LIQUIDITY DETECTED: UNFAVORABLE PROBABILITY — ${score}/10`;verd.style.background='#2a0000';verd.style.borderColor='#5a0000';verd.style.color='#f44336';}
   }
- 
-  // Retail warning
-  const warn = document.getElementById('de-retail-warn');
-  if (warn) warn.style.display = (!passed && score > 0) ? 'block' : 'none';
- 
-  // Execute button
-  const btn = document.getElementById('de-execute-btn');
-  if (btn) {
-    btn.disabled      = !passed;
-    btn.textContent   = passed ? `✦ EXECUTE — ${score}/10 CONFIRMED` : `BLOCKED — ${CFG.minScore - score} MORE REQUIRED`;
-    btn.style.background  = passed ? color   : 'transparent';
-    btn.style.color       = passed ? '#000'  : '#f44336';
-    btn.style.borderColor = passed ? color   : '#6d0000';
-  }
- 
-  // Build item list grouped by category
-  const groups = {};
-  DE_ITEMS.forEach(item => {
-    if (!groups[item.cat]) groups[item.cat] = [];
-    groups[item.cat].push(item);
-  });
- 
-  container.innerHTML = Object.entries(groups).map(([cat, items]) => {
-    const catColor = DE_CAT_COLORS[cat] || '#888';
-    const catScore = items.filter(i => _deChecked[i.id] === true).length;
- 
-    const header = `<div style="
-      display:flex;justify-content:space-between;align-items:center;
-      padding:8px 16px;margin-top:12px;
-      border-left:3px solid ${catColor};padding-left:13px;
-    ">
-      <span style="font-size:10px;font-weight:800;letter-spacing:.09em;color:${catColor}">${cat}</span>
-      <span style="font-size:11px;color:var(--text3)">${catScore}/${items.length}</span>
-    </div>`;
- 
-    const rows = items.map(item => {
-      const state    = _deChecked[item.id];
-      const isChecked = state === true;
-      const isNo      = state === false;
-      const isExpanded = _deExpanded[item.id];
- 
-      return `<div style="
-        margin:0 16px 6px;
-        border:.5px solid ${isChecked ? catColor : 'var(--border)'};
-        border-radius:var(--rs,8px);overflow:hidden;
-      ">
-        <div style="display:flex;align-items:flex-start;padding:12px;gap:10px">
-          <div onclick="deToggle('${item.id}')" style="
-            width:26px;height:26px;min-width:26px;border-radius:6px;
-            border:1.5px solid ${isChecked ? catColor : isNo ? 'var(--red)' : 'var(--border2)'};
-            background:${isChecked ? catColor+'22' : isNo ? 'var(--red-bg)' : 'transparent'};
-            display:flex;align-items:center;justify-content:center;
-            cursor:pointer;font-size:13px;font-weight:800;
-            color:${isChecked ? catColor : isNo ? 'var(--red)' : 'transparent'};
-          ">${isChecked ? '✓' : isNo ? '✗' : ''}</div>
- 
-          <div onclick="deToggleExpand('${item.id}')" style="flex:1;cursor:pointer">
-            <div style="
-              font-size:13px;font-weight:600;line-height:1.4;
-              color:${isChecked ? 'var(--text)' : 'var(--text2)'}
-            ">${item.label}</div>
-            ${isExpanded ? `
-              <div style="font-size:11px;color:var(--text3);margin-top:5px;line-height:1.65">
-                ${item.desc}
-                <div style="font-size:10px;font-weight:700;color:${catColor};margin-top:4px">
-                  ${item.ref}
-                </div>
-              </div>` : ''}
-          </div>
- 
-          <div onclick="deToggleExpand('${item.id}')" style="font-size:10px;color:var(--text3);cursor:pointer;padding:2px 4px">
-            ${isExpanded ? '▲' : '▼'}
-          </div>
-        </div>
-      </div>`;
+  const warn=document.getElementById('de-retail-warn'); if(warn)warn.style.display=(!passed&&score>0)?'block':'none';
+  const btn=document.getElementById('de-execute-btn');
+  if(btn){btn.disabled=!passed;btn.textContent=passed?`✦ EXECUTE — ${score}/10 CONFIRMED`:`BLOCKED — ${CFG.minScore-score} MORE REQUIRED`;btn.style.background=passed?color:'transparent';btn.style.color=passed?'#000':'#f44336';btn.style.borderColor=passed?color:'#6d0000';}
+  const groups={};
+  DE_ITEMS.forEach(item=>{if(!groups[item.cat])groups[item.cat]=[];groups[item.cat].push(item);});
+  container.innerHTML=Object.entries(groups).map(([cat,items])=>{
+    const catColor=DE_CAT_COLORS[cat]||'#888'; const catScore=items.filter(i=>_deChecked[i.id]===true).length;
+    const header=`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 16px;margin-top:12px;border-left:3px solid ${catColor};padding-left:13px"><span style="font-size:10px;font-weight:800;letter-spacing:.09em;color:${catColor}">${cat}</span><span style="font-size:11px;color:var(--text3)">${catScore}/${items.length}</span></div>`;
+    const rows=items.map(item=>{
+      const state=_deChecked[item.id]; const isChecked=state===true; const isNo=state===false; const isExpanded=_deExpanded[item.id];
+      return `<div style="margin:0 16px 6px;border:.5px solid ${isChecked?catColor:'var(--border)'};border-radius:var(--radius-sm,8px);overflow:hidden"><div style="display:flex;align-items:flex-start;padding:12px;gap:10px"><div onclick="deToggle('${item.id}')" style="width:26px;height:26px;min-width:26px;border-radius:6px;border:1.5px solid ${isChecked?catColor:isNo?'var(--red)':'var(--border2)'};background:${isChecked?catColor+'22':isNo?'var(--red-bg)':'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:800;color:${isChecked?catColor:isNo?'var(--red)':'transparent'}">${isChecked?'✓':isNo?'✗':''}</div><div onclick="deToggleExpand('${item.id}')" style="flex:1;cursor:pointer"><div style="font-size:13px;font-weight:600;line-height:1.4;color:${isChecked?'var(--text)':'var(--text2)'}">${item.label}</div>${isExpanded?`<div style="font-size:11px;color:var(--text3);margin-top:5px;line-height:1.65">${item.desc}<div style="font-size:10px;font-weight:700;color:${catColor};margin-top:4px">${item.ref}</div></div>`:''}</div><div onclick="deToggleExpand('${item.id}')" style="font-size:10px;color:var(--text3);cursor:pointer;padding:2px 4px">${isExpanded?'▲':'▼'}</div></div></div>`;
     }).join('');
- 
-    return header + rows;
+    return header+rows;
   }).join('');
 }
- 
-/* ============================================================
-   ▸ 9. PILL HELPERS (original, preserved)
-   ============================================================ */
- 
-function sel(el) {
-  const g = el.dataset.g;
-  document.querySelectorAll(`[data-g="${g}"]`)
-    .forEach(e => e.className = e.className.replace(/\s*(on|bull|bear|ambi|info|gold)/g, ''));
-  el.classList.add('on');
-}
- 
-function selC(el, cls) {
-  const g = el.dataset.g;
-  document.querySelectorAll(`[data-g="${g}"]`)
-    .forEach(e => e.className = e.className.replace(/\s*(on|bull|bear|ambi|info|gold)/g, ''));
-  el.classList.add(cls);
-}
- 
-function togP(el) {
-  el.classList.toggle('on');
-  // Trigger gate rescan if a session pill changed
-  if (['lt-trigger','lt-valid','bt-valid'].includes(el.dataset.g)) {
-    scanAndGate();
-  }
-}
- 
-function getVal(g) {
-  const el = document.querySelector(
-    `[data-g="${g}"].on,[data-g="${g}"].bull,[data-g="${g}"].bear,` +
-    `[data-g="${g}"].ambi,[data-g="${g}"].info,[data-g="${g}"].gold`
-  );
-  return el ? el.dataset.v : null;
-}
- 
-function getMulti(g) {
-  return [...document.querySelectorAll(
-    `[data-g="${g}"].on,[data-g="${g}"].bull,[data-g="${g}"].bear,` +
-    `[data-g="${g}"].ambi,[data-g="${g}"].info,[data-g="${g}"].gold`
-  )].map(e => e.dataset.v);
-}
- 
-/* ============================================================
-   ▸ 10. TAB NAVIGATION
-   Session tab triggers mindset gate.
-   ============================================================ */
- 
+
+/* ── PILLS ── */
+function sel(el) { const g=el.dataset.g; document.querySelectorAll(`[data-g="${g}"]`).forEach(e=>e.className=e.className.replace(/\s*(on|bull|bear|ambi|info|gold)/g,'')); el.classList.add('on'); }
+function selC(el,cls) { const g=el.dataset.g; document.querySelectorAll(`[data-g="${g}"]`).forEach(e=>e.className=e.className.replace(/\s*(on|bull|bear|ambi|info|gold)/g,'')); el.classList.add(cls); }
+function togP(el) { el.classList.toggle('on'); if(['lt-trigger','lt-valid','bt-valid'].includes(el.dataset.g)) scanAndGate(); }
+function getVal(g) { const el=document.querySelector(`[data-g="${g}"].on,[data-g="${g}"].bull,[data-g="${g}"].bear,[data-g="${g}"].ambi,[data-g="${g}"].info,[data-g="${g}"].gold`); return el?el.dataset.v:null; }
+function getMulti(g) { return [...document.querySelectorAll(`[data-g="${g}"].on,[data-g="${g}"].bull,[data-g="${g}"].bear,[data-g="${g}"].ambi,[data-g="${g}"].info,[data-g="${g}"].gold`)].map(e=>e.dataset.v); }
+
+/* ── TABS ── */
 function showTab(tabId) {
-  const TABS = ['brain','macro','weekly','session','calendar'];
- 
-  // Session requires gate
-  if (tabId === 'session') {
-    const s = strikeCheckExpiry();
-    if (strikeIsLockedOut(s)) { brutalShow(s); return; }
-    gateShow();
-    // Gate will close itself — still proceed to show the tab behind it
-  }
- 
-  document.querySelectorAll('.sec').forEach(s  => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
- 
-  const secEl = document.getElementById(tabId);
-  if (secEl) secEl.classList.add('active');
- 
-  const idx = TABS.indexOf(tabId);
-  const btns = document.querySelectorAll('.nav-btn');
-  if (btns[idx]) btns[idx].classList.add('active');
- 
-  // Tab-specific side effects
-  if (tabId === 'brain')    updateBrainContext();
-  if (tabId === 'session')  { renderTrades(); scanAndGate(); }
-  if (tabId === 'calendar') { kzUpdateStatus(); rfUpdate(); }
- 
-  window.scrollTo(0, 0);
+  const TABS=['brain','macro','weekly','session','calendar'];
+  if (tabId==='session') { const s=strikeCheckExpiry(); if(strikeIsLockedOut(s)){brutalShow(s);return;} gateShow(); }
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const secEl=document.getElementById(tabId); if(secEl)secEl.classList.add('active');
+  const idx=TABS.indexOf(tabId); const btns=document.querySelectorAll('.nav-btn'); if(btns[idx])btns[idx].classList.add('active');
+  if(tabId==='brain') updateBrainContext();
+  if(tabId==='session') { renderTrades(); scanAndGate(); }
+  if(tabId==='calendar') { kzUpdateStatus(); rfUpdate(); }
+  window.scrollTo(0,0);
 }
- 
-/* ============================================================
-   ▸ 11. MACRO TAB
-   ============================================================ */
- 
-function showMacro(id, el) {
-  ['quarterly','monthly','seasonal'].forEach(x => {
-    const node = document.getElementById('macro-' + x);
-    if (node) node.style.display = x === id ? 'block' : 'none';
-  });
-  document.querySelectorAll('#macro .tl-item').forEach(e => e.classList.remove('active'));
-  if (el) el.classList.add('active');
+
+/* ── MACRO ── */
+function showMacro(id,el) {
+  ['quarterly','monthly','seasonal'].forEach(x=>{const n=document.getElementById('macro-'+x);if(n)n.style.display=x===id?'block':'none';});
+  document.querySelectorAll('#macro .tl-item').forEach(e=>e.classList.remove('active')); if(el)el.classList.add('active');
 }
- 
-function saveQuarterly() {
-  D.q = {
-    bias:        getVal('q-bias'),
-    phase:       getVal('q-phase'),
-    pos:         getVal('q-pos'),
-    high:        v('q-high'),
-    low:         v('q-low'),
-    targets:     v('q-targets'),
-    intermarket: v('q-intermarket'),
-    narrative:   v('q-narrative'),
-  };
-  save(); toast('Quarterly saved ✓');
-}
- 
-function saveMonthly() {
-  D.m = {
-    bias:        getVal('m-bias'),
-    pos:         getVal('m-pos'),
-    draw:        getVal('m-draw'),
-    open:        v('m-open'),
-    high:        v('m-high'),
-    low:         v('m-low'),
-    levels:      v('m-levels'),
-    narrative:   v('m-narrative'),
-    longtargets: v('m-longtargets'),
-  };
-  save(); toast('Monthly saved ✓');
-}
- 
-function saveSeasonalNotes() {
-  D.seasonal.notes = v('seasonal-notes');
-  save(); toast('Seasonal notes saved ✓');
-}
- 
-/* ============================================================
-   ▸ 12. WEEKLY TAB
-   ============================================================ */
- 
+function saveQuarterly() { D.q={bias:getVal('q-bias'),phase:getVal('q-phase'),pos:getVal('q-pos'),high:v('q-high'),low:v('q-low'),targets:v('q-targets'),intermarket:v('q-intermarket'),narrative:v('q-narrative')}; save(); toast('Quarterly saved ✓'); }
+function saveMonthly() { D.m={bias:getVal('m-bias'),pos:getVal('m-pos'),draw:getVal('m-draw'),open:v('m-open'),high:v('m-high'),low:v('m-low'),levels:v('m-levels'),narrative:v('m-narrative'),longtargets:v('m-longtargets')}; save(); toast('Monthly saved ✓'); }
+function saveSeasonalNotes() { D.seasonal.notes=v('seasonal-notes'); save(); toast('Seasonal notes saved ✓'); }
+
+/* ── WEEKLY ── */
 function saveWeekly() {
-  const entry = {
-    date:      new Date().toLocaleDateString('en-US',{ month:'short', day:'numeric' }),
-    bias:      getVal('w-bias'),
-    str:       getVal('w-str'),
-    pos:       getVal('w-pos'),
-    draw:      getVal('w-draw'),
-    levels:    v('w-levels'),
-    day:       getVal('w-day'),
-    pat:       getVal('w-pat'),
-    narrative: v('w-narrative'),
-    dont:      getMulti('w-dont'),
-  };
-  D.w = entry;
-  D.weeklyHistory.unshift(entry);
-  if (D.weeklyHistory.length > 8) D.weeklyHistory.pop();
-  save(); renderWeeklyHistory(); toast('Weekly plan saved ✓');
+  const entry={date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),bias:getVal('w-bias'),str:getVal('w-str'),pos:getVal('w-pos'),draw:getVal('w-draw'),levels:v('w-levels'),day:getVal('w-day'),pat:getVal('w-pat'),narrative:v('w-narrative'),dont:getMulti('w-dont')};
+  D.w=entry; D.weeklyHistory.unshift(entry); if(D.weeklyHistory.length>8)D.weeklyHistory.pop(); save(); renderWeeklyHistory(); toast('Weekly plan saved ✓');
 }
- 
 function renderWeeklyHistory() {
-  const el = document.getElementById('weekly-history');
-  if (!el) return;
-  if (!D.weeklyHistory.length) {
-    el.innerHTML = '<div class="empty">No weekly plans saved yet.</div>';
-    return;
-  }
-  el.innerHTML = D.weeklyHistory.map(w => `
-    <div class="entry-card">
-      <div class="entry-head">
-        <span style="font-size:11px;color:var(--text3)">${w.date||''}</span>
-        ${w.bias ? `<span class="badge ${w.bias==='Bullish'?'bull':w.bias==='Bearish'?'bear':'ambi'}">${w.bias}</span>` : ''}
-        ${w.draw ? `<span style="font-size:11px;color:var(--text2)">${w.draw}</span>` : ''}
-        ${w.pat  ? `<span style="font-size:11px;color:var(--text3)">${w.pat}</span>` : ''}
-      </div>
-      ${w.narrative ? `<div class="entry-narrative">${w.narrative}</div>` : ''}
-      ${w.dont?.length ? `<div style="font-size:11px;color:var(--text3)">Rules: ${w.dont.join(' · ')}</div>` : ''}
-    </div>`).join('');
+  const el=document.getElementById('weekly-history'); if(!el)return;
+  if(!D.weeklyHistory.length){el.innerHTML='<div class="empty">No weekly plans saved yet.</div>';return;}
+  el.innerHTML=D.weeklyHistory.map(w=>`<div class="entry-card"><div class="entry-head"><span style="font-size:11px;color:var(--text3)">${w.date||''}</span>${w.bias?`<span class="badge ${w.bias==='Bullish'?'bull':w.bias==='Bearish'?'bear':'ambi'}">${w.bias}</span>`:''} ${w.draw?`<span style="font-size:11px;color:var(--text2)">${w.draw}</span>`:''} ${w.pat?`<span style="font-size:11px;color:var(--text3)">${w.pat}</span>`:''}</div>${w.narrative?`<div class="entry-narrative">${w.narrative}</div>`:''} ${w.dont?.length?`<div style="font-size:11px;color:var(--text3)">Rules: ${w.dont.join(' · ')}</div>`:''}</div>`).join('');
 }
- 
-/* ============================================================
-   ▸ 13. SESSION TAB
-   ============================================================ */
- 
-function showSession(id, el) {
-  ['plan','live','backtest','trades'].forEach(x => {
-    const node = document.getElementById('sess-' + x);
-    if (node) node.style.display = x === id ? 'block' : 'none';
-  });
-  document.querySelectorAll('#session .tl-item').forEach(e => e.classList.remove('active'));
-  if (el) el.classList.add('active');
-  if (id === 'trades') renderTrades();
-  if (id === 'live' || id === 'backtest') scanAndGate();
+
+/* ── SESSION ── */
+function showSession(id,el) {
+  ['plan','live','backtest','trades'].forEach(x=>{const n=document.getElementById('sess-'+x);if(n)n.style.display=x===id?'block':'none';});
+  document.querySelectorAll('#session .tl-item').forEach(e=>e.classList.remove('active')); if(el)el.classList.add('active');
+  if(id==='trades')renderTrades(); if(id==='live'||id==='backtest')scanAndGate();
 }
- 
-function saveDailyPlan() {
-  D.s = {
-    day:       getVal('s-day'),
-    bias:      getVal('s-bias'),
-    draw:      getVal('s-draw'),
-    sess:      getVal('s-sess'),
-    levels:    v('s-levels'),
-    narrative: v('s-narrative'),
-  };
-  save(); toast('Daily plan saved ✓');
-}
- 
-/* ============================================================
-   ▸ 14. LIVE TRADE LOGGER
-   ============================================================ */
- 
+function saveDailyPlan() { D.s={day:getVal('s-day'),bias:getVal('s-bias'),draw:getVal('s-draw'),sess:getVal('s-sess'),levels:v('s-levels'),narrative:v('s-narrative')}; save(); toast('Daily plan saved ✓'); }
+
+/* ── LIVE TRADE ── */
 async function logLiveTrade() {
-  // 7/10 gate
-  if (!dePassed()) {
-    toast(`⛔ ${deScore()}/10 — Need ${CFG.minScore - deScore()} more confluence items`);
-    deOpen();
-    return;
-  }
- 
-  const btn    = document.getElementById('lt-btn');
-  const out    = document.getElementById('lt-out');
-  const aiEl   = document.getElementById('lt-ai');
-  const dir    = getVal('lt-dir');
-  const res    = getVal('lt-res');
-  const valid  = getVal('lt-valid');
-  const r      = parseFloat(document.getElementById('lt-r')?.value) || 0;
-  const note   = v('lt-note');
-  const emo    = getMulti('lt-emo');
-  const triggers = getMulti('lt-trigger');
-  const score  = deScore();
- 
-  // Strike logic
-  if (valid === 'invalid' || score < CFG.minScore) {
-    const s = strikeAdd(valid === 'invalid' ? 'Invalid setup logged (live)' : 'Sub-7/10 live trade', score);
-    if (strikeIsLockedOut(s)) { brutalShow(s); return; }
-  }
- 
-  if (btn) { btn.disabled = true; btn.textContent = 'Reviewing...'; }
-  if (out) out.style.display = 'block';
-  if (aiEl) aiEl.textContent = 'Reading your live trade through the ICT lens...';
- 
-  const prompt = buildTradePrompt('LIVE REAL-MONEY TRADE', { dir, res, valid, r, score, triggers, emo, note });
- 
-  let text = '';
-  try {
-    text = await brainService(
-      prompt,
-      ICT_SYSTEM_PROMPT + '\n\nYou are reviewing a LIVE real-money trade just executed. Check for Judas Swing risk in hindsight. Identify the Draw on Liquidity that was targeted. Verify the AMD phase was correctly identified before entry. 3-4 sentences: what was right, the most critical issue, one specific instruction for the next trade. Direct. No markdown.'
-    );
-  } catch (e) {
-    text = fallbackReview({ dir, res, valid, triggers, score }) + '\n\n[AI: ' + e.message + ']';
-  }
- 
-  if (aiEl) aiEl.textContent = text;
-  const trade = {
-    id: Date.now(), type: 'live',
-    date: new Date().toLocaleDateString('en-US',{ month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }),
-    dir, res, r, valid, triggers, emo, note, deScore: score, review: text,
-  };
-  D.trades.unshift(trade); save();
- 
-  if (btn) { btn.disabled = false; btn.textContent = 'Log live trade + AI review ↗'; }
+  if (!dePassed()) { toast(`⛔ ${deScore()}/10 — Need ${CFG.minScore-deScore()} more confluence items`); deOpen(); return; }
+  const btn=document.getElementById('lt-btn'),out=document.getElementById('lt-out'),aiEl=document.getElementById('lt-ai');
+  const dir=getVal('lt-dir'),res=getVal('lt-res'),valid=getVal('lt-valid'),r=parseFloat(document.getElementById('lt-r')?.value)||0;
+  const note=v('lt-note'),emo=getMulti('lt-emo'),triggers=getMulti('lt-trigger'),score=deScore();
+  if(valid==='invalid'||score<CFG.minScore){const s=strikeAdd(valid==='invalid'?'Invalid setup logged (live)':'Sub-7/10 live trade',score);if(strikeIsLockedOut(s)){brutalShow(s);return;}}
+  if(btn){btn.disabled=true;btn.textContent='Reviewing...';}
+  if(out)out.style.display='block'; if(aiEl)aiEl.textContent='Reading your live trade through the ICT lens...';
+  const prompt=buildTradePrompt('LIVE REAL-MONEY TRADE',{dir,res,valid,r,score,triggers,emo,note});
+  let text='';
+  try { text=await brainService(prompt,ICT_SYSTEM_PROMPT+'\n\nYou are reviewing a LIVE real-money trade. Check for Judas Swing risk in hindsight. Identify the DOL targeted. Verify AMD phase was correctly identified. 3-4 sentences: what was right, the most critical issue, one specific instruction. Direct. No markdown.'); }
+  catch(e) { text=fallbackReview({dir,res,valid,triggers,score})+'\n\n[AI: '+e.message+']'; }
+  if(aiEl)aiEl.textContent=text;
+  D.trades.unshift({id:Date.now(),type:'live',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),dir,res,r,valid,triggers,emo,note,deScore:score,review:text});
+  save(); if(btn){btn.disabled=false;btn.textContent='Log live trade + AI review ↗';}
 }
- 
-/* ============================================================
-   ▸ 15. BACKTEST LOGGER
-   ============================================================ */
- 
+
+/* ── BACKTEST ── */
 async function logBacktest() {
-  if (!dePassed()) {
-    toast(`⛔ ${deScore()}/10 — Need ${CFG.minScore - deScore()} more`);
-    deOpen();
-    return;
-  }
- 
-  const btn   = document.getElementById('bt-btn');
-  const out   = document.getElementById('bt-out');
-  const aiEl  = document.getElementById('bt-ai');
-  const day   = getVal('bt-day');
-  const dir   = getVal('bt-dir');
-  const m15   = getMulti('bt-m15');
-  const m1    = getMulti('bt-m1');
-  const res   = getVal('bt-res');
-  const valid = getVal('bt-valid');
-  const r     = parseFloat(document.getElementById('bt-r')?.value) || 0;
-  const note  = v('bt-note');
-  const score = deScore();
- 
-  if (valid === 'invalid') strikeAdd('Invalid backtest setup', score);
- 
-  if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
-  if (out) out.style.display = 'block';
-  if (aiEl) aiEl.textContent = 'Writing ICT journal entry...';
- 
-  const prompt = buildTradePrompt('BACKTEST TRADE', { day, dir, res, valid, r, score,
-    m15summary: m15.join(', ') || 'none',
-    m1summary:  m1.join(', ')  || 'none',
-    note,
-  });
- 
-  let text = '';
-  try {
-    text = await brainService(
-      prompt,
-      ICT_SYSTEM_PROMPT + '\n\nWrite two sections:\nJOURNAL: 3-4 sentences first person past tense. Describe the Draw on Liquidity targeted, whether a Judas Swing was present, the session narrative, entry mechanics, and result using ICT terminology naturally.\n\nREVIEW: 3-4 sentences as the mentor. What was right, the most critical mistake if any, and one specific actionable instruction. Be direct.\n\nFormat exactly:\nJOURNAL: [text]\n\nREVIEW: [text]\n\nNo markdown, no bullets, no asterisks.'
-    );
-  } catch (e) {
-    text = 'JOURNAL: Backtest logged — ' + dir + ' on ' + day + ', ' + res + ', ' + r + 'R. DE score: ' + score + '/10.\n\nREVIEW: ' + fallbackReview({ dir, res, valid, triggers: m1, score }) + '\n\n[AI: ' + e.message + ']';
-  }
- 
-  if (aiEl) aiEl.textContent = text;
-  D.pendingBt = {
-    id: Date.now(), type: 'backtest',
-    date: new Date().toLocaleDateString('en-US',{ month:'short', day:'numeric' }),
-    day, dir, res, r, valid, m15, m1, note, deScore: score, aiText: text,
-  };
- 
-  if (btn) { btn.disabled = false; btn.textContent = 'Generate journal + review ↗'; }
+  if (!dePassed()) { toast(`⛔ ${deScore()}/10 — Need ${CFG.minScore-deScore()} more`); deOpen(); return; }
+  const btn=document.getElementById('bt-btn'),out=document.getElementById('bt-out'),aiEl=document.getElementById('bt-ai');
+  const day=getVal('bt-day'),dir=getVal('bt-dir'),m15=getMulti('bt-m15'),m1=getMulti('bt-m1');
+  const res=getVal('bt-res'),valid=getVal('bt-valid'),r=parseFloat(document.getElementById('bt-r')?.value)||0;
+  const note=v('bt-note'),score=deScore();
+  if(valid==='invalid')strikeAdd('Invalid backtest setup',score);
+  if(btn){btn.disabled=true;btn.textContent='Generating';}
+  if(out)out.style.display='block'; if(aiEl)aiEl.textContent='Writing ICT journal entry...';
+  const prompt=buildTradePrompt('BACKTEST TRADE',{day,dir,res,valid,r,score,m15summary:m15.join(', ')||'none',m1summary:m1.join(', ')||'none',note});
+  let text='';
+  try { text=await brainService(prompt,ICT_SYSTEM_PROMPT+'\n\nWrite two sections:\nJOURNAL: 3-4 sentences first person past tense. Describe DOL targeted, whether Judas Swing was present, session narrative, entry mechanics, result using ICT terms.\n\nREVIEW: 3-4 sentences as the mentor. What was right, most critical mistake, one specific instruction.\n\nFormat:\nJOURNAL: [text]\n\nREVIEW: [text]\n\nNo markdown, no bullets, no asterisks.'); }
+  catch(e) { text='JOURNAL: Backtest logged — '+dir+' on '+day+', '+res+', '+r+'R.\n\nREVIEW: '+fallbackReview({dir,res,valid,triggers:m1,score})+'\n\n[AI: '+e.message+']'; }
+  if(aiEl)aiEl.textContent=text;
+  D.pendingBt={id:Date.now(),type:'backtest',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),day,dir,res,r,valid,m15,m1,note,deScore:score,aiText:text};
+  if(btn){btn.disabled=false;btn.textContent='Generate journal + review ↗';}
 }
- 
-function saveBt() {
-  if (D.pendingBt) {
-    D.trades.unshift(D.pendingBt);
-    D.pendingBt = null;
-    save(); discardBt();
-    showSession('trades', null);
-    renderTrades();
-  }
-}
- 
-function discardBt() {
-  const out = document.getElementById('bt-out');
-  const ai  = document.getElementById('bt-ai');
-  if (out) out.style.display = 'none';
-  if (ai)  ai.textContent = '';
-  D.pendingBt = null;
-}
- 
-/* ============================================================
-   ▸ 16. TRADE HISTORY RENDER
-   ============================================================ */
- 
-function filterTrades(filter = 'all') {
-  let trades = D.trades;
-  if (filter === 'live')     trades = trades.filter(t => t.type === 'live');
-  if (filter === 'backtest') trades = trades.filter(t => t.type === 'backtest');
- 
-  const valid  = trades.filter(t => t.valid === 'valid');
-  const wins   = valid.filter(t => t.res === 'win');
-  const totalR = valid.reduce((s,t) =>
-    s + (t.res === 'win' ? t.r : t.res === 'loss' ? -Math.abs(t.r) : 0), 0);
- 
-  const sum = document.getElementById('trades-summary');
-  if (sum) sum.textContent =
-    `${trades.length} trades · ${valid.length ? Math.round(wins.length/valid.length*100)+'% WR' : '—'} · ${totalR>=0?'+':''}${totalR.toFixed(1)}R`;
- 
-  const el = document.getElementById('trades-list');
-  if (!el) return;
-  if (!trades.length) { el.innerHTML = '<div class="empty">No trades logged yet.</div>'; return; }
- 
-  el.innerHTML = trades.map(t => {
-    const parts = t.aiText ? t.aiText.split(/REVIEW:/i) : ['', ''];
-    const j  = parts[0].replace(/JOURNAL:/i,'').trim();
-    const rv = parts[1] ? parts[1].trim() : '';
-    const scoreColor = t.deScore === undefined ? '' :
-      t.deScore >= CFG.minScore ? 'color:var(--green)' : 'color:var(--red)';
- 
-    return `<div class="entry-card">
-      <div class="entry-head">
-        <span class="live-tag ${t.type === 'live' ? 'live' : 'back'}">${t.type === 'live' ? '● LIVE' : '◉ BT'}</span>
-        <span style="font-size:11px;color:var(--text3)">${t.date||''}</span>
-        ${t.day   ? `<span style="font-size:11px;color:var(--text2)">${t.day.slice(0,3)}</span>` : ''}
-        ${t.dir   ? `<span class="badge ${t.dir}">${t.dir.toUpperCase()}</span>` : ''}
-        ${t.res   ? `<span class="badge ${t.res}">${t.res.toUpperCase()}</span>` : ''}
-        ${t.r     ? `<span style="font-size:12px;font-weight:700" class="${t.r>0?'pnl-p':'pnl-n'}">${t.r>0?'+':''}${t.r}R</span>` : ''}
-        ${t.valid ? `<span class="badge ${t.valid}">${t.valid}</span>` : ''}
-        ${t.deScore !== undefined ? `<span style="font-size:10px;font-weight:700;${scoreColor}">${t.deScore}/10</span>` : ''}
-      </div>
-      ${j     ? `<div class="entry-narrative">${j}</div>` : ''}
-      ${!j && t.note   ? `<div class="entry-narrative">${t.note}</div>` : ''}
-      ${!j && t.review ? `<div class="entry-review">MENTOR: ${t.review}</div>` : ''}
-      ${rv ? `<div class="entry-review">MENTOR: ${rv}</div>` : ''}
-    </div>`;
+function saveBt() { if(D.pendingBt){D.trades.unshift(D.pendingBt);D.pendingBt=null;save();discardBt();showSession('trades',null);renderTrades();} }
+function discardBt() { const out=document.getElementById('bt-out'),ai=document.getElementById('bt-ai'); if(out)out.style.display='none'; if(ai)ai.textContent=''; D.pendingBt=null; }
+
+/* ── TRADE HISTORY ── */
+function filterTrades(filter='all') {
+  let trades=D.trades;
+  if(filter==='live')trades=trades.filter(t=>t.type==='live');
+  if(filter==='backtest')trades=trades.filter(t=>t.type==='backtest');
+  const valid=trades.filter(t=>t.valid==='valid'),wins=valid.filter(t=>t.res==='win');
+  const totalR=valid.reduce((s,t)=>s+(t.res==='win'?t.r:t.res==='loss'?-Math.abs(t.r):0),0);
+  const sum=document.getElementById('trades-summary'); if(sum)sum.textContent=`${trades.length} trades · ${valid.length?Math.round(wins.length/valid.length*100)+'% WR':'—'} · ${totalR>=0?'+':''}${totalR.toFixed(1)}R`;
+  const el=document.getElementById('trades-list'); if(!el)return;
+  if(!trades.length){el.innerHTML='<div class="empty">No trades logged yet.</div>';return;}
+  el.innerHTML=trades.map(t=>{
+    const parts=t.aiText?t.aiText.split(/REVIEW:/i):['',''];
+    const j=parts[0].replace(/JOURNAL:/i,'').trim(),rv=parts[1]?parts[1].trim():'';
+    const sc=t.deScore===undefined?'':`t.deScore>=${CFG.minScore}?'color:var(--green)':'color:var(--red)'`;
+    return `<div class="entry-card"><div class="entry-head"><span class="live-tag ${t.type==='live'?'live':'back'}">${t.type==='live'?'● LIVE':'◉ BT'}</span><span style="font-size:11px;color:var(--text3)">${t.date||''}</span>${t.day?`<span style="font-size:11px;color:var(--text2)">${t.day.slice(0,3)}</span>`:''} ${t.dir?`<span class="badge ${t.dir}">${t.dir.toUpperCase()}</span>`:''} ${t.res?`<span class="badge ${t.res}">${t.res.toUpperCase()}</span>`:''} ${t.r?`<span style="font-size:12px;font-weight:700" class="${t.r>0?'pnl-p':'pnl-n'}">${t.r>0?'+':''}${t.r}R</span>`:''} ${t.valid?`<span class="badge ${t.valid}">${t.valid}</span>`:''} ${t.deScore!==undefined?`<span style="font-size:10px;font-weight:700;${t.deScore>=CFG.minScore?'color:var(--green)':'color:var(--red)'}">${t.deScore}/10</span>`:''}</div>${j?`<div class="entry-narrative">${j}</div>`:''} ${!j&&t.note?`<div class="entry-narrative">${t.note}</div>`:''} ${!j&&t.review?`<div class="entry-review">MENTOR: ${t.review}</div>`:''} ${rv?`<div class="entry-review">MENTOR: ${rv}</div>`:''}</div>`;
   }).join('');
 }
- 
 function renderTrades() { filterTrades('all'); }
- 
-/* ============================================================
-   ▸ 17. BRAIN TAB — context builder + runBrain
-   ============================================================ */
- 
+
+/* ── BRAIN ── */
 function buildContext() {
-  const q = D.q, m = D.m, w = D.w, s = D.s;
-  return [
-    `QUARTERLY: bias=${q.bias||'?'}, phase=${q.phase||'?'}, position=${q.pos||'?'}`,
-    `  targets=${q.targets||'not set'}, intermarket=${q.intermarket||'not set'}`,
-    `  narrative=${q.narrative||'not written'}`,
-    `MONTHLY: bias=${m.bias||'?'}, position=${m.pos||'?'}, draw=${m.draw||'?'}`,
-    `  levels=${m.levels||'not set'}, longtargets=${m.longtargets||'not set'}`,
-    `  narrative=${m.narrative||'not written'}`,
-    `WEEKLY: bias=${w.bias||'?'}, structure=${w.str||'?'}, position=${w.pos||'?'}`,
-    `  draw=${w.draw||'?'}, pattern=${w.pat||'?'}`,
-    `  narrative=${w.narrative||'not written'}`,
-    `  rules=${(w.dont||[]).join(' / ')||'none set'}`,
-    `TODAY: day=${s.day||'?'}, bias=${s.bias||'?'}, draw=${s.draw||'?'}`,
-    `  session=${s.sess||'?'}, prediction=${s.narrative||'not written'}`,
-    `DECISION ENGINE: last score=${deScore()}/10, passed=${dePassed()}`,
-  ].join('\n');
+  const q=D.q,m=D.m,w=D.w,s=D.s;
+  return [`QUARTERLY: bias=${q.bias||'?'}, phase=${q.phase||'?'}, position=${q.pos||'?'}`,`  targets=${q.targets||'not set'}, intermarket=${q.intermarket||'not set'}`,`  narrative=${q.narrative||'not written'}`,`MONTHLY: bias=${m.bias||'?'}, position=${m.pos||'?'}, draw=${m.draw||'?'}`,`  levels=${m.levels||'not set'}, longtargets=${m.longtargets||'not set'}`,`  narrative=${m.narrative||'not written'}`,`WEEKLY: bias=${w.bias||'?'}, structure=${w.str||'?'}, position=${w.pos||'?'}`,`  draw=${w.draw||'?'}, pattern=${w.pat||'?'}`,`  narrative=${w.narrative||'not written'}`,`  rules=${(w.dont||[]).join(' / ')||'none set'}`,`TODAY: day=${s.day||'?'}, bias=${s.bias||'?'}, draw=${s.draw||'?'}`,`  session=${s.sess||'?'}, prediction=${s.narrative||'not written'}`,`DECISION ENGINE: last score=${deScore()}/10, passed=${dePassed()}`].join('\n');
 }
- 
 function updateBrainContext() {
-  const q = D.q, m = D.m, w = D.w;
-  const line = document.getElementById('brain-context-line');
-  const parts = [];
-  if (q.bias) parts.push('Q: ' + q.bias);
-  if (m.bias) parts.push('Monthly: ' + m.bias);
-  if (w.bias) parts.push('Weekly: ' + w.bias);
-  if (w.draw) parts.push('Draw: ' + w.draw);
-  if (line) line.textContent = parts.length ? parts.join(' · ') : 'Add macro + weekly data first';
- 
-  const pills = document.getElementById('context-pills');
-  if (pills) {
-    const items = [
-      { label:'Quarterly', val:q.bias, detail:[q.phase,q.pos].filter(Boolean).join(' · ') },
-      { label:'Monthly',   val:m.bias, detail:[m.pos,m.draw].filter(Boolean).join(' · ') },
-      { label:'Weekly',    val:w.bias, detail:[w.pos,w.draw,w.pat].filter(Boolean).join(' · ') },
-      { label:'Today',     val:D.s.bias, detail:[D.s.day,D.s.draw].filter(Boolean).join(' · ') },
-    ];
-    pills.innerHTML = items.map(item => {
-      const dc = item.val==='Bullish'?'green':item.val==='Bearish'?'red':item.val?'orange':'grey';
-      const bc = item.val==='Bullish'?'bull':item.val==='Bearish'?'bear':item.val?'ambi':'';
-      return `<div class="status-bar">
-        <div class="status-dot ${dc}"></div>
-        <div style="flex:1">
-          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">${item.label}</div>
-          <div style="margin-top:3px">
-            ${item.val ? `<span class="badge ${bc}" style="margin-right:6px">${item.val}</span>` : ''}
-            <span style="font-size:12px;color:var(--text2)">${item.detail||'Not set'}</span>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
+  const q=D.q,m=D.m,w=D.w;
+  const line=document.getElementById('brain-context-line'); const parts=[];
+  if(q.bias)parts.push('Q: '+q.bias); if(m.bias)parts.push('Monthly: '+m.bias);
+  if(w.bias)parts.push('Weekly: '+w.bias); if(w.draw)parts.push('Draw: '+w.draw);
+  if(line)line.textContent=parts.length?parts.join(' · '):'Add macro + weekly data first';
+  const pills=document.getElementById('context-pills');
+  if(pills){
+    const items=[{label:'Quarterly',val:q.bias,detail:[q.phase,q.pos].filter(Boolean).join(' · ')},{label:'Monthly',val:m.bias,detail:[m.pos,m.draw].filter(Boolean).join(' · ')},{label:'Weekly',val:w.bias,detail:[w.pos,w.draw,w.pat].filter(Boolean).join(' · ')},{label:'Today',val:D.s.bias,detail:[D.s.day,D.s.draw].filter(Boolean).join(' · ')}];
+    pills.innerHTML=items.map(item=>{const dc=item.val==='Bullish'?'green':item.val==='Bearish'?'red':item.val?'orange':'grey';const bc=item.val==='Bullish'?'bull':item.val==='Bearish'?'bear':item.val?'ambi':'';return `<div class="status-bar"><div class="status-dot ${dc}"></div><div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">${item.label}</div><div style="margin-top:3px">${item.val?`<span class="badge ${bc}" style="margin-right:6px">${item.val}</span>`:''}<span style="font-size:12px;color:var(--text2)">${item.detail||'Not set'}</span></div></div></div>`;}).join('');
   }
- 
-  // Metrics
-  const valid  = D.trades.filter(t => t.valid === 'valid');
-  const wins   = valid.filter(t => t.res === 'win');
-  const totalR = valid.reduce((s,t) => s + (t.res==='win'?t.r:t.res==='loss'?-Math.abs(t.r):0), 0);
-  const metricsEl = document.getElementById('brain-metrics');
-  if (metricsEl) {
-    metricsEl.innerHTML = `
-      <div class="metric"><div class="metric-val">${valid.length ? Math.round(wins.length/valid.length*100)+'%' : '—'}</div><div class="metric-lbl">Win rate (valid)</div></div>
-      <div class="metric"><div class="metric-val ${totalR>=0?'pnl-p':'pnl-n'}">${totalR>=0?'+':''}${totalR.toFixed(1)}R</div><div class="metric-lbl">Total R</div></div>
-      <div class="metric"><div class="metric-val">${D.trades.length}</div><div class="metric-lbl">Total trades</div></div>
-      <div class="metric"><div class="metric-val">${valid.length}</div><div class="metric-lbl">Valid setups</div></div>`;
-  }
+  const valid=D.trades.filter(t=>t.valid==='valid'),wins=valid.filter(t=>t.res==='win');
+  const totalR=valid.reduce((s,t)=>s+(t.res==='win'?t.r:t.res==='loss'?-Math.abs(t.r):0),0);
+  const me=document.getElementById('brain-metrics');
+  if(me)me.innerHTML=`<div class="metric"><div class="metric-val">${valid.length?Math.round(wins.length/valid.length*100)+'%':'—'}</div><div class="metric-lbl">Win rate (valid)</div></div><div class="metric"><div class="metric-val ${totalR>=0?'pnl-p':'pnl-n'}">${totalR>=0?'+':''}${totalR.toFixed(1)}R</div><div class="metric-lbl">Total R</div></div><div class="metric"><div class="metric-val">${D.trades.length}</div><div class="metric-lbl">Total trades</div></div><div class="metric"><div class="metric-val">${valid.length}</div><div class="metric-lbl">Valid setups</div></div>`;
 }
- 
-function brainQuick(q) {
-  const inp = document.getElementById('brain-q');
-  if (inp) inp.value = q;
-  runBrain();
-}
- 
+function brainQuick(q) { const inp=document.getElementById('brain-q'); if(inp)inp.value=q; runBrain(); }
 async function runBrain() {
-  const btn  = document.getElementById('brain-btn');
-  const wrap = document.getElementById('brain-out-wrap');
-  const out  = document.getElementById('brain-out');
-  const note = document.getElementById('brain-note');
-  const q    = document.getElementById('brain-q')?.value.trim();
-  if (!q) return;
- 
-  if (btn)  { btn.disabled = true; btn.textContent = 'Thinking...'; }
-  if (wrap) wrap.style.display = 'block';
-  if (out)  out.textContent = 'Identifying Draw on Liquidity and scanning for Judas Swing risk...';
-  if (note) note.textContent = '';
- 
-  const ctx    = buildContext();
-  const recent = D.trades.slice(0,6).map((t,i) =>
-    `${i+1}. ${t.type} ${t.day||'?'} ${t.dir||'?'} ${t.res||'?'} ${t.r||0}R valid:${t.valid||'?'} DE:${t.deScore??'?'}/10`
-  ).join('\n');
- 
-  const fullPrompt = [
-    'TRADER\'S COMPLETE MARKET DATA:',
-    ctx,
-    '',
-    'RECENT TRADE LOG:',
-    recent || 'No trades logged yet',
-    '',
-    'QUESTION / REQUEST:',
-    q,
-  ].join('\n');
- 
-  try {
-    const text = await brainService(fullPrompt, ICT_SYSTEM_PROMPT);
-    if (out) out.textContent = text;
-    if (note) note.textContent = 'Analysis grounded in ICT/IPDA knowledge base';
-  } catch (e) {
-    if (out) out.textContent =
-      'Error: ' + e.message +
-      '\n\nFix: Open Settings (⚙) → add your Anthropic API key from console.anthropic.com\n' +
-      'Or set EXPO_PUBLIC_ANTHROPIC_KEY in your .env.local file.';
-  }
- 
-  if (btn) { btn.disabled = false; btn.textContent = 'Analyze ↗'; }
+  const btn=document.getElementById('brain-btn'),wrap=document.getElementById('brain-out-wrap'),out=document.getElementById('brain-out'),note=document.getElementById('brain-note');
+  const q=document.getElementById('brain-q')?.value.trim(); if(!q)return;
+  if(btn){btn.disabled=true;btn.textContent='Thinking...';}
+  if(wrap)wrap.style.display='block';
+  if(out)out.textContent='Identifying Draw on Liquidity and scanning for Judas Swing risk...';
+  if(note)note.textContent='';
+  const ctx=buildContext();
+  const recent=D.trades.slice(0,6).map((t,i)=>`${i+1}. ${t.type} ${t.day||'?'} ${t.dir||'?'} ${t.res||'?'} ${t.r||0}R valid:${t.valid||'?'} DE:${t.deScore??'?'}/10`).join('\n');
+  const fullPrompt=['TRADER\'S COMPLETE MARKET DATA:',ctx,'','RECENT TRADE LOG:',recent||'No trades logged yet','','QUESTION / REQUEST:',q].join('\n');
+  try { const text=await brainService(fullPrompt,ICT_SYSTEM_PROMPT); if(out)out.textContent=text; if(note)note.textContent='Analysis grounded in ICT/IPDA knowledge base'; }
+  catch(e) { if(out)out.textContent='Error: '+e.message+'\n\nFix: Open Settings (⚙) → add your Anthropic API key from console.anthropic.com\nOr set EXPO_PUBLIC_ANTHROPIC_KEY in your .env.local file.'; }
+  if(btn){btn.disabled=false;btn.textContent='Analyze ↗';}
 }
- 
-/* ============================================================
-   ▸ 18. CALENDAR + RED FOLDER PROTOCOL
-   ============================================================ */
- 
-const KILLZONES = [
-  { name:'London Open',     start:'02:00', end:'05:00', color:'#42a5f5' },
-  { name:'NY AM Open',      start:'07:00', end:'10:00', color:'#4caf50' },
-  { name:'Silver Bullet 1', start:'10:00', end:'11:00', color:'#ffd700' },
-  { name:'NY PM',           start:'13:00', end:'15:00', color:'#ce93d8' },
-  { name:'Silver Bullet 2', start:'14:00', end:'15:00', color:'#ffd700' },
-];
- 
-function getESTTime() {
-  try {
-    const s = new Date().toLocaleString('en-US', { hour:'2-digit', minute:'2-digit', hour12:false, timeZone:'America/New_York' });
-    return s.padStart(5,'0');
-  } catch { return '00:00'; }
-}
- 
+
+/* ── CALENDAR + RED FOLDER ── */
+const KILLZONES=[{name:'London Open',start:'02:00',end:'05:00',color:'#42a5f5'},{name:'NY AM Open',start:'07:00',end:'10:00',color:'#4caf50'},{name:'Silver Bullet 1',start:'10:00',end:'11:00',color:'#ffd700'},{name:'NY PM',start:'13:00',end:'15:00',color:'#ce93d8'},{name:'Silver Bullet 2',start:'14:00',end:'15:00',color:'#ffd700'}];
+function getESTTime() { try{const s=new Date().toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/New_York'});return s.padStart(5,'0');}catch{return '00:00';} }
 function kzUpdateStatus() {
-  const el  = document.getElementById('kz-status');
-  if (!el) return;
-  const est = getESTTime();
-  for (const kz of KILLZONES) {
-    if (est >= kz.start && est <= kz.end) {
-      el.innerHTML = `<span style="color:${kz.color};font-weight:700">● ${kz.name} ACTIVE</span> — High probability window. Only enter with full 7/10 confluence.`;
-      return;
-    }
-  }
-  for (const kz of KILLZONES) {
-    if (kz.start > est) {
-      el.innerHTML = `<span style="color:var(--text3)">No killzone active.</span> Next: <b style="color:var(--text)">${kz.name}</b> at ${kz.start}am EST`;
-      return;
-    }
-  }
-  el.innerHTML = `<span style="color:var(--text3)">Session closed. Next: London Open 2:00am EST.</span>`;
+  const el=document.getElementById('kz-status'); if(!el)return; const est=getESTTime();
+  for(const kz of KILLZONES){if(est>=kz.start&&est<=kz.end){el.innerHTML=`<span style="color:${kz.color};font-weight:700">● ${kz.name} ACTIVE</span> — High probability window. Only enter with full 7/10 confluence.`;return;}}
+  for(const kz of KILLZONES){if(kz.start>est){el.innerHTML=`<span style="color:var(--text3)">No killzone active.</span> Next: <b style="color:var(--text)">${kz.name}</b> at ${kz.start} EST`;return;}}
+  el.innerHTML=`<span style="color:var(--text3)">Session closed. Next: London Open 2:00am EST.</span>`;
 }
- 
-/**
- * rfUpdate()
- * Scans manually entered High-impact events against current time.
- * Amber header = within 30 min. Red header = within 5 min / active.
- * Also disables log buttons during active red folder window.
- */
 function rfUpdate() {
-  const banner = document.getElementById('rf-banner');
-  if (!banner) return;
- 
-  const highImpact = D.events.filter(e => e.impact === 'High');
-  const now = new Date();
-  let triggered = false;
- 
-  for (const ev of highImpact) {
-    if (!ev.date || !ev.time) continue;
-    try {
-      // Parse "May 2 8:30am" style
-      const evDate = new Date(ev.date + ' ' + ev.time.replace(/([0-9]):([0-9]{2})(am|pm)/i,
-        (_, h, m, ampm) => {
-          let hr = parseInt(h);
-          if (ampm.toLowerCase() === 'pm' && hr !== 12) hr += 12;
-          if (ampm.toLowerCase() === 'am' && hr === 12) hr = 0;
-          return hr + ':' + m;
-        }
-      ));
-      if (isNaN(evDate)) continue;
- 
-      const diffMin = (evDate - now) / 60_000;
-      if (diffMin >= -5 && diffMin <= 30) {
-        const isActive = diffMin <= 5;
-        banner.className   = isActive ? 'red' : 'amber';
-        banner.textContent = isActive
-          ? `🔴 RED FOLDER ACTIVE — ${ev.name} — ICT: Do NOT trade. Wait 15-30min after release.`
-          : `⚠️ RED FOLDER IN ${Math.ceil(diffMin)}MIN — ${ev.name} — Close open positions. No new entries.`;
-        triggered = true;
- 
-        // Disable execute buttons during active red folder
-        ['lt-btn','bt-btn'].forEach(id => {
-          const b = document.getElementById(id);
-          if (b) { b.disabled = true; b.title = 'Red Folder active — trading disabled'; }
-        });
+  const banner=document.getElementById('rf-banner'); if(!banner)return;
+  const highImpact=D.events.filter(e=>e.impact==='High'); const now=new Date(); let triggered=false;
+  for(const ev of highImpact){
+    if(!ev.date||!ev.time)continue;
+    try{
+      const evDate=new Date(ev.date+' '+ev.time.replace(/([0-9]):([0-9]{2})(am|pm)/i,(_,h,m,ap)=>{let hr=parseInt(h);if(ap.toLowerCase()==='pm'&&hr!==12)hr+=12;if(ap.toLowerCase()==='am'&&hr===12)hr=0;return hr+':'+m;}));
+      if(isNaN(evDate))continue;
+      const diffMin=(evDate-now)/60000;
+      if(diffMin>=-5&&diffMin<=30){
+        const isActive=diffMin<=5;
+        banner.className=isActive?'red':'amber';
+        banner.textContent=isActive?`🔴 RED FOLDER ACTIVE — ${ev.name} — ICT: Do NOT trade. Wait 15-30min after release.`:`⚠️ RED FOLDER IN ${Math.ceil(diffMin)}MIN — ${ev.name} — Close positions. No new entries.`;
+        triggered=true;
+        ['lt-btn','bt-btn'].forEach(id=>{const b=document.getElementById(id);if(b){b.disabled=true;b.title='Red Folder active — trading disabled';}});
         break;
       }
-    } catch (_) {}
+    }catch(_){}
   }
- 
-  if (!triggered) {
-    banner.className   = '';
-    banner.textContent = '';
-    // Re-run the normal 7/10 gate (re-enables if score permits)
-    scanAndGate();
-  }
+  if(!triggered){banner.className='';banner.textContent='';scanAndGate();}
 }
- 
 function addEvent() {
-  const ev = {
-    id:     Date.now(),
-    date:   v('ev-date'),
-    time:   v('ev-time'),
-    name:   v('ev-name'),
-    impact: getVal('ev-impact'),
-    note:   v('ev-note'),
-  };
-  if (!ev.name) { toast('Enter an event name'); return; }
-  D.events.unshift(ev); save(); renderEvents();
-  ['ev-date','ev-time','ev-name','ev-note'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
+  const ev={id:Date.now(),date:v('ev-date'),time:v('ev-time'),name:v('ev-name'),impact:getVal('ev-impact'),note:v('ev-note')};
+  if(!ev.name){toast('Enter an event name');return;}
+  D.events.unshift(ev);save();renderEvents();
+  ['ev-date','ev-time','ev-name','ev-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   toast('Event added ✓');
 }
- 
 function renderEvents() {
-  const el = document.getElementById('events-list');
-  if (!el) return;
-  if (!D.events.length) { el.innerHTML = '<div class="empty">No events added.</div>'; return; }
-  const cols = { High:'var(--red)', Medium:'var(--orange)', Low:'var(--green)' };
-  el.innerHTML = '<div class="card">' + D.events.map(e => `
-    <div class="cal-event">
-      <div class="cal-time" style="color:${cols[e.impact]||'var(--text3)'}">
-        ● ${e.impact||''} · ${e.date||''} ${e.time||''}
-      </div>
-      <div class="cal-name">${e.name}</div>
-      ${e.note ? `<div style="font-size:11px;color:var(--text3);margin-top:4px;line-height:1.6">${e.note}</div>` : ''}
-    </div>`).join('') + '</div>';
+  const el=document.getElementById('events-list'); if(!el)return;
+  if(!D.events.length){el.innerHTML='<div class="empty">No events added.</div>';return;}
+  const cols={High:'var(--red)',Medium:'var(--orange)',Low:'var(--green)'};
+  el.innerHTML='<div class="card">'+D.events.map(e=>`<div class="cal-event"><div class="cal-time" style="color:${cols[e.impact]||'var(--text3)'}">● ${e.impact||''} · ${e.date||''} ${e.time||''}</div><div class="cal-name">${e.name}</div>${e.note?`<div style="font-size:11px;color:var(--text3);margin-top:4px;line-height:1.6">${e.note}</div>`:''}</div>`).join('')+'</div>';
   rfUpdate();
 }
- 
-/* ============================================================
-   ▸ 19. SETTINGS MODAL
-   ============================================================ */
- 
+
+/* ── SETTINGS ── */
 function openSettings() {
-  const keyEl = document.getElementById('settings-key');
-  const epEl  = document.getElementById('settings-endpoint');
-  const stEl  = document.getElementById('settings-strikes');
-  if (keyEl) keyEl.value = CFG.apiKey;
-  if (epEl)  epEl.value  = CFG.endpoint;
-  if (stEl)  stEl.textContent = strikeLoad().count;
+  const keyEl=document.getElementById('settings-key'),epEl=document.getElementById('settings-endpoint'),stEl=document.getElementById('settings-strikes');
+  if(keyEl)keyEl.value=CFG.apiKey; if(epEl)epEl.value=CFG.endpoint; if(stEl)stEl.textContent=strikeLoad().count;
   document.getElementById('settings-modal')?.classList.add('active');
 }
- 
-function closeSettings() {
-  document.getElementById('settings-modal')?.classList.remove('active');
-}
- 
+function closeSettings() { document.getElementById('settings-modal')?.classList.remove('active'); }
 function saveSettings() {
-  const k  = document.getElementById('settings-key')?.value.trim();
-  const ep = document.getElementById('settings-endpoint')?.value.trim();
-  if (k)  localStorage.setItem('ipda_api_key',  k);
-  if (ep) { localStorage.setItem('ipda_endpoint', ep); BRAIN_CONFIG.endpoint = ep; }
-  closeSettings();
-  toast('Settings saved ✓');
+  const k=document.getElementById('settings-key')?.value.trim();
+  const ep=document.getElementById('settings-endpoint')?.value.trim();
+  if(k)localStorage.setItem('ipda_api_key',k);
+  if(ep)localStorage.setItem('ipda_endpoint',ep);
+  // CFG.endpoint is a getter that reads localStorage automatically — no extra assignment needed
+  closeSettings(); toast('Settings saved ✓');
 }
- 
-/* ============================================================
-   ▸ 20. HELPERS
-   ============================================================ */
- 
-/** Get value of a text/textarea input by id */
-function v(id) {
-  return document.getElementById(id)?.value || '';
+
+/* ── HELPERS ── */
+function v(id) { return document.getElementById(id)?.value||''; }
+function buildTradePrompt(type,fields) {
+  const ctx=buildContext();
+  return [type,'---','Market context:',ctx,'---',`Direction: ${fields.dir||'?'} | Result: ${fields.res||'?'} | R: ${fields.r||0}`,`Valid: ${fields.valid||'?'} | Decision Engine: ${fields.score??'?'}/10`,fields.triggers?`Entry triggers: ${fields.triggers.join(', ')||'none'}`:'',fields.emo?`Emotional state: ${fields.emo.join(', ')||'not noted'}`:'',fields.m15summary?`15m confluences: ${fields.m15summary}`:'',fields.m1summary?`1m confluences: ${fields.m1summary}`:'',fields.note?`Note: ${fields.note}`:'',fields.day?`Day: ${fields.day}`:''].filter(Boolean).join('\n');
 }
- 
-/** Build structured prompt for trade review */
-function buildTradePrompt(type, fields) {
-  const ctx = buildContext();
-  return [
-    type,
-    '---',
-    'Market context:',
-    ctx,
-    '---',
-    `Direction: ${fields.dir||'?'} | Result: ${fields.res||'?'} | R: ${fields.r||0}`,
-    `Valid: ${fields.valid||'?'} | Decision Engine: ${fields.score??'?'}/10`,
-    fields.triggers ? `Entry triggers: ${fields.triggers.join(', ')||'none'}` : '',
-    fields.emo      ? `Emotional state: ${fields.emo.join(', ')||'not noted'}` : '',
-    fields.m15summary ? `15m confluences: ${fields.m15summary}` : '',
-    fields.m1summary  ? `1m confluences:  ${fields.m1summary}` : '',
-    fields.note ? `Note: ${fields.note}` : '',
-    fields.day  ? `Day: ${fields.day}` : '',
-  ].filter(Boolean).join('\n');
+function fallbackReview({dir,res,valid,triggers,score}) {
+  if(score<CFG.minScore)return`Decision Engine score was ${score}/10 — below the 7/10 institutional minimum. This is retail probability territory. Identify the missing confluence items and drill them before the next session.`;
+  if(valid==='invalid')return'This was an invalid setup. The 10-item engine exists specifically to prevent this. No exceptions, regardless of how convinced you are. Next trade: complete all 10 items before touching the execute button.';
+  if(triggers?.includes('Entered early'))return'You entered before 1m CHoCH confirmed. This is the single most common fixable mistake in ICT execution. The entry only exists after the CHoCH. Next trade: do not click until the 1m structure flips.';
+  if(triggers?.includes('Chased'))return'You chased the displacement candle. The displacement is not your entry — the retracement into the FVG is. If there is no retracement, there is no trade.';
+  if(res==='win'&&valid==='valid')return'Clean, valid execution. DOL identified, manipulation confirmed, entry triggered at the correct confluence zone. This is the repeatable standard.';
+  if(res==='loss'&&valid==='valid')return'Valid setup, honest loss. A valid loss means the algorithm had a different target or the HTF DOL was misidentified — not that you executed poorly. Review the DOL read on the highest timeframe.';
+  return'Trade logged. Compare your pre-session prediction against what actually happened. The gap between those two is where your edge develops.';
 }
- 
-/**
- * fallbackReview(fields)
- * Offline coaching — used when the API is unavailable.
- * Based on pure ICT logic, no AI needed.
- */
-function fallbackReview({ dir, res, valid, triggers, score }) {
-  if (score < CFG.minScore)
-    return `Decision Engine score was ${score}/10 — below the 7/10 institutional minimum. This is retail probability territory. Identify the missing confluence items and drill them before the next session.`;
-  if (valid === 'invalid')
-    return 'This was an invalid setup. The 10-item engine exists specifically to prevent this. No exceptions, regardless of how convinced you are. Next trade: complete all 10 items before touching the execute button.';
-  if (triggers?.includes('Entered early'))
-    return 'You entered before 1m CHoCH confirmed. This is the single most common fixable mistake in ICT execution. The entry only exists after the CHoCH — every candle before it is premature. Next trade: do not click until the 1m structure flips.';
-  if (triggers?.includes('Chased'))
-    return 'You chased the displacement candle. The displacement is not your entry — the retracement into the FVG is. If there is no retracement, there is no trade. Wait for the algorithm to return to the imbalance it created.';
-  if (res === 'win' && valid === 'valid')
-    return 'Clean, valid execution. DOL identified, manipulation confirmed, entry triggered at the correct confluence zone. This is the repeatable standard. Log what you did well — not just what went wrong.';
-  if (res === 'loss' && valid === 'valid')
-    return 'Valid setup, honest loss. This is part of any probabilistic model. A valid loss means the algorithm had a different target or the HTF Draw on Liquidity was misidentified — not that you executed poorly. Review the DOL read on the highest timeframe.';
-  return 'Trade logged. Compare your pre-session prediction against what actually happened. The gap between those two is where your edge develops.';
-}
- 
-/** Toast notification */
 function toast(msg) {
-  const t = document.createElement('div');
-  t.textContent = msg;
-  Object.assign(t.style, {
-    position:'fixed', bottom:'80px', left:'50%', transform:'translateX(-50%)',
-    background:'#222', color:'#f0f0f0', padding:'10px 18px',
-    borderRadius:'20px', fontSize:'13px', fontWeight:'700',
-    zIndex:'9999', whiteSpace:'nowrap', boxShadow:'0 4px 20px rgba(0,0,0,.5)',
-    border:'.5px solid #333', transition:'opacity .3s',
-    pointerEvents:'none',
-  });
+  const t=document.createElement('div'); t.textContent=msg;
+  Object.assign(t.style,{position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',background:'#222',color:'#f0f0f0',padding:'10px 18px',borderRadius:'20px',fontSize:'13px',fontWeight:'700',zIndex:'9999',whiteSpace:'nowrap',boxShadow:'0 4px 20px rgba(0,0,0,.5)',border:'.5px solid #333',transition:'opacity .3s',pointerEvents:'none'});
   document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2400);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},2400);
 }
- 
-/* ============================================================
-   ▸ 21. SETUP SCREEN
-   ============================================================ */
- 
+
+/* ── SETUP SCREEN ── */
 function completeSetup() {
-  const k = document.getElementById('setup-key')?.value.trim();
-  if (k) localStorage.setItem('ipda_api_key', k);
-  localStorage.setItem('ipda_setup_done', '1');
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('nav').style.display = 'flex';
+  const k=document.getElementById('setup-key')?.value.trim();
+  if(k)localStorage.setItem('ipda_api_key',k);
+  localStorage.setItem('ipda_setup_done','1');
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('nav').style.display='flex';
   initApp();
 }
- 
-/* ============================================================
-   ▸ 22. INIT
-   ============================================================ */
- 
+
+/* ── INIT ── */
 function initApp() {
-  const now = new Date();
- 
-  // Date labels
-  const q = Math.ceil((now.getMonth() + 1) / 3);
-  const qLabel = document.getElementById('q-label');
-  if (qLabel) qLabel.textContent = q + ' ' + now.getFullYear();
- 
-  const mLabel = document.getElementById('m-label');
-  if (mLabel) mLabel.textContent = now.toLocaleDateString('en-US',{ month:'long', year:'numeric' });
- 
-  const ws = new Date(now);
-  ws.setDate(now.getDate() - ((now.getDay() || 7) - 1));
-  const we = new Date(ws);
-  we.setDate(ws.getDate() + 4);
-  const wkHeader = document.getElementById('week-label-header');
-  if (wkHeader) wkHeader.textContent = 'Week of ' +
-    ws.toLocaleDateString('en-US',{ month:'short', day:'numeric' }) + ' – ' +
-    we.toLocaleDateString('en-US',{ month:'short', day:'numeric' });
- 
-  // Restore saved text values
-  const fields = {
-    'q-high':        D.q.high,
-    'q-low':         D.q.low,
-    'q-targets':     D.q.targets,
-    'q-intermarket': D.q.intermarket,
-    'q-narrative':   D.q.narrative,
-    'm-open':        D.m.open,
-    'm-high':        D.m.high,
-    'm-low':         D.m.low,
-    'm-levels':      D.m.levels,
-    'm-narrative':   D.m.narrative,
-    'm-longtargets': D.m.longtargets,
-    'w-levels':      D.w.levels,
-    'w-narrative':   D.w.narrative,
+  const now=new Date();
+  const q=Math.ceil((now.getMonth()+1)/3);
+  const qLabel=document.getElementById('q-label'); if(qLabel)qLabel.textContent=q+' '+now.getFullYear();
+  const mLabel=document.getElementById('m-label'); if(mLabel)mLabel.textContent=now.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const ws=new Date(now); ws.setDate(now.getDate()-((now.getDay()||7)-1)); const we=new Date(ws); we.setDate(ws.getDate()+4);
+  const wkHeader=document.getElementById('week-label-header');
+  if(wkHeader)wkHeader.textContent='Week of '+ws.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+we.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+  // ── Restore saved text values (includes brain-q per Gemini's suggestion) ──
+  const fields={
+    'q-high':D.q.high,'q-low':D.q.low,'q-targets':D.q.targets,
+    'q-intermarket':D.q.intermarket,'q-narrative':D.q.narrative,
+    'm-open':D.m.open,'m-high':D.m.high,'m-low':D.m.low,
+    'm-levels':D.m.levels,'m-narrative':D.m.narrative,'m-longtargets':D.m.longtargets,
+    'w-levels':D.w.levels,'w-narrative':D.w.narrative,
     'seasonal-notes':D.seasonal.notes,
-    's-levels':      D.s.levels,
-    's-narrative':   D.s.narrative,
+    's-levels':D.s.levels,'s-narrative':D.s.narrative,
+    'brain-q':D.brainQ||'',   // ← Gemini's suggestion: persist brain question
   };
-  Object.entries(fields).forEach(([id, val]) => {
-    const el = document.getElementById(id);
-    if (el && val) el.value = val;
-  });
- 
-  // Render all lists
-  renderWeeklyHistory();
-  renderEvents();
-  updateBrainContext();
-  strikeUpdateUI();
-  kzUpdateStatus();
-  rfUpdate();
-  scanAndGate();
- 
-  // Auto-poll every 60s for red folder + killzone
-  setInterval(() => { rfUpdate(); kzUpdateStatus(); }, 60_000);
+  Object.entries(fields).forEach(([id,val])=>{const el=document.getElementById(id);if(el&&val)el.value=val;});
+
+  // Save brain-q whenever the user types, so it survives refresh
+  const brainQEl=document.getElementById('brain-q');
+  if(brainQEl){brainQEl.addEventListener('input',()=>{D.brainQ=brainQEl.value;save();});}
+
+  renderWeeklyHistory(); renderEvents(); updateBrainContext(); strikeUpdateUI(); kzUpdateStatus(); rfUpdate(); scanAndGate();
+  setInterval(()=>{rfUpdate();kzUpdateStatus();},60000);
 }
- 
+
 /* ── BOOT ── */
 load();
-if (localStorage.getItem('ipda_setup_done')) {
-  const ss = document.getElementById('setup-screen');
-  const ap = document.getElementById('app');
-  const nv = document.getElementById('nav');
-  if (ss) ss.style.display = 'none';
-  if (ap) ap.style.display = 'block';
-  if (nv) nv.style.display = 'flex';
+if(localStorage.getItem('ipda_setup_done')){
+  const ss=document.getElementById('setup-screen'),ap=document.getElementById('app'),nv=document.getElementById('nav');
+  if(ss)ss.style.display='none'; if(ap)ap.style.display='block'; if(nv)nv.style.display='flex';
   initApp();
 }
 </script>
