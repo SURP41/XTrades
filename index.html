@@ -815,7 +815,8 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
 'use strict';
 
 /* ── CONFIG ── */
-const CFG = {
+const CFG = {const BRAIN_API = 'http://127.0.0.1:5000';
+const SESSION_ID = 'session_' + Date.now();
   get apiKey() {
     return (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_ANTHROPIC_KEY)
       || localStorage.getItem('ipda_api_key') || '';
@@ -834,7 +835,97 @@ const CFG = {
 };
 
 /* ── API SERVICE ── */
-async function brainService(userMessage, systemMessage) {
+// ── BRAIN BACKEND CONNECTOR ──
+async function callBrain(question, imageBase64 = null, emotionalState = 'neutral') {
+    const traderContext = buildContext();
+
+    const payload = {
+        session_id: SESSION_ID,
+        question: question,
+        trader_context: traderContext,
+        emotional_state: emotionalState,
+        image_base64: imageBase64
+    };
+
+    try {
+        const res = await fetch(`${BRAIN_API}/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (data.locked) {
+            showSessionLocked();
+            return null;
+        }
+
+        return data.response;
+
+    } catch (e) {
+        console.error('Brain API error:', e);
+        // Fallback to direct API if backend is not running
+        return null;
+    }
+}
+
+async function logTradeToBackend(result) {
+    try {
+        await fetch(`${BRAIN_API}/log-trade`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                session_id: SESSION_ID,
+                result: result
+            })
+        });
+    } catch (e) {
+        console.error('Log trade error:', e);
+    }
+}
+
+async function runPatternAnalysis() {
+    try {
+        const res = await fetch(`${BRAIN_API}/pattern-analysis`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ trades: D.trades })
+        });
+        const data = await res.json();
+        return data.analysis;
+    } catch (e) {
+        return 'Backend not running. Start backend.py first.';
+    }
+}
+
+async function generateCoachProfile() {
+    try {
+        const res = await fetch(`${BRAIN_API}/generate-profile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ trades: D.trades })
+        });
+        const data = await res.json();
+        return data.profile;
+    } catch (e) {
+        return 'Backend not running. Start backend.py first.';
+    }
+}
+
+function showSessionLocked() {
+    document.getElementById('brutal-screen')?.classList.add('active');
+}
+
+function imageToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+  async function brainService(userMessage, systemMessage) {
   const isDirect = CFG.endpoint.includes('anthropic.com');
   if (isDirect && !CFG.apiKey) throw new Error('No API key set.\nOpen Settings (⚙) → paste your key from console.anthropic.com');
   const headers = { 'Content-Type': 'application/json' };
@@ -1158,6 +1249,7 @@ async function logLiveTrade() {
   if(aiEl)aiEl.textContent=text;
   D.trades.unshift({id:Date.now(),type:'live',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),dir,res,r,valid,triggers,emo,note,deScore:score,review:text});
   save(); if(btn){btn.disabled=false;btn.textContent='Log live trade + AI review ↗';}
+await logTradeToBackend(res);
 }
 
 /* ── BACKTEST ── */
@@ -1223,20 +1315,39 @@ function updateBrainContext() {
 }
 function brainQuick(q) { const inp=document.getElementById('brain-q'); if(inp)inp.value=q; runBrain(); }
 async function runBrain() {
-  const btn=document.getElementById('brain-btn'),wrap=document.getElementById('brain-out-wrap'),out=document.getElementById('brain-out'),note=document.getElementById('brain-note');
-  const q=document.getElementById('brain-q')?.value.trim(); if(!q)return;
-  if(btn){btn.disabled=true;btn.textContent='Thinking...';}
-  if(wrap)wrap.style.display='block';
-  if(out)out.textContent='Identifying Draw on Liquidity and scanning for Judas Swing risk...';
-  if(note)note.textContent='';
-  const ctx=buildContext();
-  const recent=D.trades.slice(0,6).map((t,i)=>`${i+1}. ${t.type} ${t.day||'?'} ${t.dir||'?'} ${t.res||'?'} ${t.r||0}R valid:${t.valid||'?'} DE:${t.deScore??'?'}/10`).join('\n');
-  const fullPrompt=['TRADER\'S COMPLETE MARKET DATA:',ctx,'','RECENT TRADE LOG:',recent||'No trades logged yet','','QUESTION / REQUEST:',q].join('\n');
-  try { const text=await brainService(fullPrompt,ICT_SYSTEM_PROMPT); if(out)out.textContent=text; if(note)note.textContent='Analysis grounded in ICT/IPDA knowledge base'; }
-  catch(e) { if(out)out.textContent='Error: '+e.message+'\n\nFix: Open Settings (⚙) → add your Anthropic API key from console.anthropic.com\nOr set EXPO_PUBLIC_ANTHROPIC_KEY in your .env.local file.'; }
-  if(btn){btn.disabled=false;btn.textContent='Analyze ↗';}
-}
+    const btn = document.getElementById('brain-btn');
+    const wrap = document.getElementById('brain-out-wrap');
+    const out = document.getElementById('brain-out');
+    const note = document.getElementById('brain-note');
+    const q = document.getElementById('brain-q')?.value.trim();
 
+    if (!q) return;
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Thinking...'; }
+    if (wrap) wrap.style.display = 'block';
+    if (out) out.textContent = 'Analyzing your setup against ICT knowledge base...';
+    if (note) note.textContent = '';
+
+    // Get emotional state from any active emotion pills
+    const emos = getMulti('lt-emo');
+    const emotionalState = emos.length > 0 ? emos[0] : 'neutral';
+
+    // Try backend first
+    let text = await callBrain(q, null, emotionalState);
+
+    // Fallback to direct API if backend not available
+    if (!text) {
+        try {
+            text = await brainService(q + '\n\nContext:\n' + buildContext(), ICT_SYSTEM_PROMPT);
+        } catch (e) {
+            text = 'Error: ' + e.message + '\n\nMake sure backend.py is running.';
+        }
+    }
+
+    if (out) out.textContent = text;
+    if (note) note.textContent = 'Analysis from ICT knowledge base — 2708 chunks';
+    if (btn) { btn.disabled = false; btn.textContent = 'Analyze ↗'; }
+}
 /* ── CALENDAR + RED FOLDER ── */
 const KILLZONES=[{name:'London Open',start:'02:00',end:'05:00',color:'#42a5f5'},{name:'NY AM Open',start:'07:00',end:'10:00',color:'#4caf50'},{name:'Silver Bullet 1',start:'10:00',end:'11:00',color:'#ffd700'},{name:'NY PM',start:'13:00',end:'15:00',color:'#ce93d8'},{name:'Silver Bullet 2',start:'14:00',end:'15:00',color:'#ffd700'}];
 function getESTTime() { try{const s=new Date().toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/New_York'});return s.padStart(5,'0');}catch{return '00:00';} }
