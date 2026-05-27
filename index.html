@@ -326,6 +326,28 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
 
   <div class="card">
     <div class="card-title">Ask the brain</div>
+    <div class="card">
+    <div class="card-title">Ask the brain</div>
+
+    <!-- CHART UPLOAD -->
+    <div id="chart-upload-zone" style="border:.5px dashed var(--border2);border-radius:var(--radius-sm);padding:14px;text-align:center;margin-bottom:10px;cursor:pointer;background:var(--bg2)" onclick="document.getElementById('chart-file-input').click()">
+        <input type="file" id="chart-file-input" accept="image/*" style="display:none" onchange="handleChartUpload(event)">
+        <div id="chart-upload-text" style="font-size:12px;color:var(--text2)">📊 Tap to upload chart screenshot</div>
+        <img id="chart-preview" style="display:none;width:100%;border-radius:var(--radius-sm);margin-top:8px;max-height:200px;object-fit:cover">
+    </div>
+
+    <!-- EMOTIONAL STATE -->
+    <div class="lbl">Your state right now</div>
+    <div class="pills" style="margin-bottom:10px">
+        <span class="pill" data-g="brain-emo" data-v="neutral" onclick="selC(this,'info')">Neutral</span>
+        <span class="pill" data-g="brain-emo" data-v="fomo" onclick="selC(this,'bear')">FOMO</span>
+        <span class="pill" data-g="brain-emo" data-v="revenge" onclick="selC(this,'bear')">Revenge</span>
+        <span class="pill" data-g="brain-emo" data-v="euphoric" onclick="selC(this,'ambi')">Euphoric</span>
+        <span class="pill" data-g="brain-emo" data-v="anxious" onclick="selC(this,'ambi')">Anxious</span>
+        <span class="pill" data-g="brain-emo" data-v="patient" onclick="selC(this,'bull')">Patient</span>
+    </div>
+
+    <textarea id="brain-q" rows="3" placeholder="What should I be looking for today?
     <textarea id="brain-q" rows="3" placeholder="What should I be looking for today?&#10;Is my narrative valid?&#10;Identify the Draw on Liquidity&#10;Check for Judas Swing risk"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
       <button class="btn sm" onclick="brainQuick('Give me a full market briefing based on my current macro, monthly and weekly data. Identify the Draw on Liquidity and check for Judas Swing risks.')">📋 Full briefing</button>
@@ -838,6 +860,15 @@ const SESSION_ID = 'session_' + Date.now();
 // ── BRAIN BACKEND CONNECTOR ──
 async function callBrain(question, imageBase64 = null, emotionalState = 'neutral') {
     const traderContext = buildContext();
+ 
+  const payload = {
+    session_id: SESSION_ID,
+    question: question,
+    trader_context: traderContext,
+    emotional_state: emotionalState,
+    image_base64: imageBase64,
+    image_type: currentChartType || 'image/jpeg'
+};
 
     const payload = {
         session_id: SESSION_ID,
@@ -845,6 +876,7 @@ async function callBrain(question, imageBase64 = null, emotionalState = 'neutral
         trader_context: traderContext,
         emotional_state: emotionalState,
         image_base64: imageBase64
+      
     };
 
     try {
@@ -916,7 +948,44 @@ async function generateCoachProfile() {
 function showSessionLocked() {
     document.getElementById('brutal-screen')?.classList.add('active');
 }
+// Chart upload handling
+let currentChartBase64 = null;
+let currentChartType = 'image/jpeg';
 
+function handleChartUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    currentChartType = file.type || 'image/jpeg';
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        // Store base64 without the data:image/...;base64, prefix
+        currentChartBase64 = e.target.result.split(',')[1];
+
+        // Show preview
+        const preview = document.getElementById('chart-preview');
+        const uploadText = document.getElementById('chart-upload-text');
+        if (preview) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        if (uploadText) {
+            uploadText.textContent = '✓ Chart loaded — tap to change';
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearChartUpload() {
+    currentChartBase64 = null;
+    const preview = document.getElementById('chart-preview');
+    const uploadText = document.getElementById('chart-upload-text');
+    const input = document.getElementById('chart-file-input');
+    if (preview) preview.style.display = 'none';
+    if (uploadText) uploadText.textContent = '📊 Tap to upload chart screenshot';
+    if (input) input.value = '';
+}
 function imageToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -1327,6 +1396,36 @@ async function runBrain() {
     if (wrap) wrap.style.display = 'block';
     if (out) out.textContent = 'Analyzing your setup against ICT knowledge base...';
     if (note) note.textContent = '';
+
+    // Get emotional state
+    const emotionalState = getVal('brain-emo') || 'neutral';
+
+    // Try backend with chart image if uploaded
+    let text = await callBrain(q, currentChartBase64, emotionalState);
+
+    // Fallback to direct API if backend not available
+    if (!text) {
+        try {
+            text = await brainService(
+                q + '\n\nContext:\n' + buildContext(),
+                ICT_SYSTEM_PROMPT
+            );
+        } catch (e) {
+            text = 'Error: ' + e.message + '\n\nMake sure backend.py is running.';
+        }
+    }
+
+    if (out) out.textContent = text;
+    if (note) {
+        note.textContent = currentChartBase64
+            ? 'Chart analyzed against 2708 ICT chunks'
+            : 'Analysis from ICT knowledge base — 2708 chunks';
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'Analyze ↗'; }
+
+    // Clear chart after analysis
+    clearChartUpload();
+}
 
     // Get emotional state from any active emotion pills
     const emos = getMulti('lt-emo');
