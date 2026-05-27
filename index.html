@@ -835,7 +835,7 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
 
 <script>
 'use strict';
-  const BRAIN_API = 'http://127.0.0.1:5000';
+const BRAIN_API = 'http://127.0.0.1:5000';
 const SESSION_ID = 'session_' + Date.now();
 
 /* ── CONFIG ── */
@@ -857,27 +857,20 @@ const CFG = {
   strikesKey: 'ipda_strikes_v2',
 };
 
-/* ── API SERVICE ── */
-// ── BRAIN BACKEND CONNECTOR ──
+/* ── BRAIN BACKEND CONNECTOR ── */
+let currentChartBase64 = null;
+let currentChartType = 'image/jpeg';
+
 async function callBrain(question, imageBase64 = null, emotionalState = 'neutral') {
     const traderContext = buildContext();
- 
-  const payload = {
-    session_id: SESSION_ID,
-    question: question,
-    trader_context: traderContext,
-    emotional_state: emotionalState,
-    image_base64: imageBase64,
-    image_type: currentChartType || 'image/jpeg'
-};
 
     const payload = {
         session_id: SESSION_ID,
         question: question,
         trader_context: traderContext,
         emotional_state: emotionalState,
-        image_base64: imageBase64
-      
+        image_base64: imageBase64,
+        image_type: currentChartType || 'image/jpeg'
     };
 
     try {
@@ -898,7 +891,6 @@ async function callBrain(question, imageBase64 = null, emotionalState = 'neutral
 
     } catch (e) {
         console.error('Brain API error:', e);
-        // Fallback to direct API if backend is not running
         return null;
     }
 }
@@ -949,9 +941,6 @@ async function generateCoachProfile() {
 function showSessionLocked() {
     document.getElementById('brutal-screen')?.classList.add('active');
 }
-// Chart upload handling
-let currentChartBase64 = null;
-let currentChartType = 'image/jpeg';
 
 function handleChartUpload(event) {
     const file = event.target.files[0];
@@ -961,10 +950,8 @@ function handleChartUpload(event) {
 
     const reader = new FileReader();
     reader.onload = (e) => {
-        // Store base64 without the data:image/...;base64, prefix
         currentChartBase64 = e.target.result.split(',')[1];
 
-        // Show preview
         const preview = document.getElementById('chart-preview');
         const uploadText = document.getElementById('chart-upload-text');
         if (preview) {
@@ -987,6 +974,7 @@ function clearChartUpload() {
     if (uploadText) uploadText.textContent = '📊 Tap to upload chart screenshot';
     if (input) input.value = '';
 }
+
 function imageToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
