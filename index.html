@@ -835,10 +835,11 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
 
 <script>
 'use strict';
+  const BRAIN_API = 'http://127.0.0.1:5000';
+const SESSION_ID = 'session_' + Date.now();
 
 /* ── CONFIG ── */
-const CFG = {const BRAIN_API = 'http://127.0.0.1:5000';
-const SESSION_ID = 'session_' + Date.now();
+const CFG = {
   get apiKey() {
     return (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_ANTHROPIC_KEY)
       || localStorage.getItem('ipda_api_key') || '';
