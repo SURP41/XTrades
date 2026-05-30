@@ -819,6 +819,22 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
   <div id="events-list"><div class="empty">No events added yet.</div></div>
 </div>
 
+<!-- Signals tab -->
+<div id="signals" class="sec">
+  <div class="page-header">
+    <div class="page-title">Signals</div>
+    <div class="page-sub">Latest Pine signal verdict</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Pine event test</div>
+    <button class="btn pri full" id="signals-test-btn" onclick="sendTestSignal()">Send test payload</button>
+    <div id="signals-status" style="font-size:12px;color:var(--text2);margin-top:10px">Polling for new signals every 10 seconds.</div>
+  </div>
+
+  <div id="signals-list"><div class="empty">No signal verdicts yet.</div></div>
+</div>
+
 </div><!-- /app -->
 
 <!-- BOTTOM NAV -->
@@ -831,6 +847,7 @@ textarea:focus,input:focus,select:focus{outline:none;border-color:var(--blue)}
     <span id="strike-indicator"></span>
   </button>
   <button class="nav-btn" onclick="showTab('calendar')"><span class="nav-icon">📰</span>Calendar</button>
+  <button class="nav-btn" onclick="showTab('signals')"><span class="nav-icon">⚡</span>Signals</button>
 </div>
 
 <script>
@@ -1251,7 +1268,7 @@ function getMulti(g) { return [...document.querySelectorAll(`[data-g="${g}"].on,
 
 /* ── TABS ── */
 function showTab(tabId) {
-  const TABS=['brain','macro','weekly','session','calendar'];
+  const TABS=['brain','macro','weekly','session','calendar','signals'];
   if (tabId==='session') { const s=strikeCheckExpiry(); if(strikeIsLockedOut(s)){brutalShow(s);return;} gateShow(); }
   document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
@@ -1260,10 +1277,128 @@ function showTab(tabId) {
   if(tabId==='brain') updateBrainContext();
   if(tabId==='session') { renderTrades(); scanAndGate(); }
   if(tabId==='calendar') { kzUpdateStatus(); rfUpdate(); }
+  if(tabId==='signals') { renderSignalCards(); pollSignals(); }
   window.scrollTo(0,0);
 }
 
 /* ── MACRO ── */
+/* Signals */
+const SIGNALS_KEY = 'ipda_signal_verdicts_v1';
+function signalEscape(x) {
+  return String(x ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function signalFields(text) {
+  const out = {};
+  String(text || '').split('\n').forEach(line => {
+    const m = line.match(/^([A-Z_]+)\s*:?\s*(.*)$/);
+    if (m) out[m[1]] = m[2].trim();
+  });
+  return out;
+}
+function loadSignals() {
+  try { return JSON.parse(localStorage.getItem(SIGNALS_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function saveSignals(items) {
+  localStorage.setItem(SIGNALS_KEY, JSON.stringify(items.slice(0, 20)));
+}
+function addSignalCard(payload, result) {
+  const text = result?.claude_response || result?.reason || JSON.stringify(result, null, 2);
+  const cards = loadSignals();
+  cards.unshift({
+    ts: new Date().toISOString(),
+    payload,
+    entry_model: result?.entry_model || payload?.entry_model || '',
+    collection_queried: result?.collection_queried || '',
+    response_text: text
+  });
+  saveSignals(cards);
+  renderSignalCards();
+}
+function renderSignalCards() {
+  const el = document.getElementById('signals-list');
+  if (!el) return;
+  const cards = loadSignals();
+  if (!cards.length) {
+    el.innerHTML = '<div class="empty">No signal verdicts yet.</div>';
+    return;
+  }
+  el.innerHTML = cards.map(card => {
+    const f = signalFields(card.response_text);
+    const dir = f.DIRECTION || card.payload?.direction || 'Unknown';
+    const tier = f.TIER || 'NO_TRADE';
+    const dirCls = String(dir).toLowerCase().includes('short') || String(dir).toLowerCase().includes('bear') ? 'short' : 'long';
+    return `<div class="entry-card">
+      <div class="entry-head">
+        <span class="badge ${dirCls}">${signalEscape(dir)}</span>
+        <span class="badge info">${signalEscape(tier)}</span>
+        ${card.entry_model ? `<span class="badge ambi">${signalEscape(card.entry_model)}</span>` : ''}
+      </div>
+      <div class="metrics" style="margin-bottom:10px">
+        <div class="metric"><div class="metric-lbl">Entry zone</div><div style="font-size:13px;color:var(--text)">${signalEscape(f.ENTRY_ZONE || '-')}</div></div>
+        <div class="metric"><div class="metric-lbl">Stop</div><div style="font-size:13px;color:var(--text)">${signalEscape(f.STOP || '-')}</div></div>
+        <div class="metric"><div class="metric-lbl">Target</div><div style="font-size:13px;color:var(--text)">${signalEscape(f.TARGET || '-')}</div></div>
+        <div class="metric"><div class="metric-lbl">RR</div><div style="font-size:13px;color:var(--text)">${signalEscape(f.RR || '-')}</div></div>
+      </div>
+      <div class="ai-box">${signalEscape(card.response_text)}</div>
+      <div class="entry-review">${signalEscape(new Date(card.ts).toLocaleString())}${card.collection_queried ? ` · ${signalEscape(card.collection_queried)}` : ''}</div>
+    </div>`;
+  }).join('');
+}
+async function sendTestSignal() {
+  const btn = document.getElementById('signals-test-btn');
+  const status = document.getElementById('signals-status');
+  if (btn) btn.disabled = true;
+  if (status) status.textContent = 'Sending test Pine payload...';
+  const payload = {
+    day: 'Monday',
+    symbol: 'NQ',
+    timeframe: '1m',
+    direction: 'long',
+    entry_model: 'fvg',
+    htf_bias: 'bullish',
+    draw_on_liquidity: 'prior day high',
+    intermarket: 'aligned',
+    smt: 'aligned',
+    mtf_alignment: 'aligned',
+    session_trades: 0,
+    entry_zone: '21450-21460',
+    stop: '21435',
+    target: '21520',
+    rr: '3.5R'
+  };
+  try {
+    const res = await fetch(`${BRAIN_API}/pine-event`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    addSignalCard(payload, data);
+    if (status) status.textContent = res.ok ? 'Latest test verdict loaded.' : 'Backend returned an error verdict.';
+  } catch(e) {
+    if (status) status.textContent = 'Could not reach local backend on port 5000.';
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+let _signalsLastSeen = '';
+async function pollSignals() {
+  const status = document.getElementById('signals-status');
+  try {
+    const res = await fetch(`${BRAIN_API}/signals/latest`, { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    const stamp = data?.id || data?.ts || data?.timestamp || JSON.stringify(data);
+    if (stamp && stamp !== _signalsLastSeen) {
+      _signalsLastSeen = stamp;
+      addSignalCard(data.payload || data, data.result || data);
+      if (status) status.textContent = 'New signal verdict received.';
+    }
+  } catch(e) {}
+}
+setInterval(pollSignals, 10000);
+
 function showMacro(id,el) {
   ['quarterly','monthly','seasonal'].forEach(x=>{const n=document.getElementById('macro-'+x);if(n)n.style.display=x===id?'block':'none';});
   document.querySelectorAll('#macro .tl-item').forEach(e=>e.classList.remove('active')); if(el)el.classList.add('active');
