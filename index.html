@@ -1549,27 +1549,7 @@ async function runBrain() {
 
     // Clear chart after analysis
     clearChartUpload();
-}
-
-    // Get emotional state from any active emotion pills
-    const emos = getMulti('lt-emo');
-    const emotionalState = emos.length > 0 ? emos[0] : 'neutral';
-
-    // Try backend first
-    let text = await callBrain(q, null, emotionalState);
-
-    // Fallback to direct API if backend not available
-    if (!text) {
-        try {
-            text = await brainService(q + '\n\nContext:\n' + buildContext(), ICT_SYSTEM_PROMPT);
-        } catch (e) {
-            text = 'Error: ' + e.message + '\n\nMake sure backend.py is running.';
-        }
-    }
-
-    if (out) out.textContent = text;
-    if (note) note.textContent = 'Analysis from ICT knowledge base — 2708 chunks';
-    if (btn) { btn.disabled = false; btn.textContent = 'Analyze ↗'; }
+    
 }
 /* ── CALENDAR + RED FOLDER ── */
 const KILLZONES=[{name:'London Open',start:'02:00',end:'05:00',color:'#42a5f5'},{name:'NY AM Open',start:'07:00',end:'10:00',color:'#4caf50'},{name:'Silver Bullet 1',start:'10:00',end:'11:00',color:'#ffd700'},{name:'NY PM',start:'13:00',end:'15:00',color:'#ce93d8'},{name:'Silver Bullet 2',start:'14:00',end:'15:00',color:'#ffd700'}];
