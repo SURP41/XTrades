@@ -1442,7 +1442,7 @@ async function logLiveTrade() {
   if(aiEl)aiEl.textContent=text;
   D.trades.unshift({id:Date.now(),type:'live',date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}),dir,res,r,valid,triggers,emo,note,deScore:score,review:text});
   save(); if(btn){btn.disabled=false;btn.textContent='Log live trade + AI review ↗';}
-await logTradeToBackend(res);
+logTradeToBackend(res);
 }
 
 /* ── BACKTEST ── */
